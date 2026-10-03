@@ -1,5 +1,5 @@
 // loginform var and listner
-import { hideSections } from "./index.js";
+import { hideSections, showSectionLoader } from "./index.js";
 import {
   fadeInEffect,
   fadeOutEffect,
@@ -74,6 +74,11 @@ loginForm.addEventListener("submit", async (e) => {
     })
     .then(async (userCredential) => {
       isSubscribe.subscribe = true;
+      if (loginSection) {
+        loginSection.classList.add("hidden");
+        loginSection.style.display = "none";
+      }
+      showSectionLoader("Logging in...", false);
       history.pushState({}, "", "/");
     })
     .catch((error) => {

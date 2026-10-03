@@ -227,19 +227,19 @@ const DOM = {
 };
 
 export async function initAdminRouting(userData) {
-  await showSectionLoader("Loading...", false);
-  if (userData) {
-    adminAppState.userData = userData;
-    adminAppState.userId = userData.id || userData.userId;
-  }
-  adminAppState.semesterData = await getWholeSemesterData();
+  // 1. Immediately switch to admin mode and hide login modal
   document.body.classList.add("is-admin");
-  await hideSections(true, true, false, true);
-
   const loginSec = document.querySelector(".login-section");
   if (loginSec) {
     loginSec.classList.add("hidden");
-    await hideElement(loginSec);
+    loginSec.style.display = "none";
+  }
+
+  showSectionLoader("Loading...", false);
+
+  if (userData) {
+    adminAppState.userData = userData;
+    adminAppState.userId = userData.id || userData.userId;
   }
 
   const urlParams = new URLSearchParams(window.location.search);
@@ -251,6 +251,8 @@ export async function initAdminRouting(userData) {
   const subject = urlParams.get("subject");
 
   adminAppState.activeSem = String(sem);
+
+  hideSections(true, true, false, true);
 
   if (subject && div) {
     localUserData.userData = userData || localUserData.userData;
@@ -270,6 +272,35 @@ export async function initAdminRouting(userData) {
   DOM.personalFolderEditBtn.textContent = "Edit";
   appState.isEditing = false;
 
+  // 2. Instant load from cache if available
+  const cachedData = sessionStorage.getItem("admin_sem_data");
+  let hasRenderedFromCache = false;
+  if (cachedData && !adminAppState.semesterData) {
+    try {
+      adminAppState.semesterData = JSON.parse(cachedData);
+      if (div && adminAppState.semesterData?.[adminAppState.activeSem]?.divisionList?.[div]) {
+        adminAppState.activeDiv = div;
+        showClassRoom();
+      } else {
+        showDivisionList();
+      }
+      hasRenderedFromCache = true;
+    } catch (e) {}
+  }
+
+  // 3. Fetch latest data from database
+  try {
+    const freshData = await getWholeSemesterData();
+    if (freshData) {
+      adminAppState.semesterData = freshData;
+      try {
+        sessionStorage.setItem("admin_sem_data", JSON.stringify(freshData));
+      } catch (e) {}
+    }
+  } catch (err) {
+    console.error("Error fetching semester data:", err);
+  }
+
   if (div) {
     if (adminAppState.semesterData?.[adminAppState.activeSem]?.divisionList?.[div]) {
       adminAppState.activeDiv = div;
@@ -284,7 +315,6 @@ export async function initAdminRouting(userData) {
 
 //division section (primary Admin Dashboard view)
 async function showDivisionList() {
-  await showSectionLoader("Loading...", false);
   await hideAdminDivisions();
   showElement(header);
   showElement(headerIcon);
