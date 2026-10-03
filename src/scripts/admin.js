@@ -264,6 +264,9 @@ export async function initAdminRouting(userData) {
     await initAppState(localUserData.userData, sem, div);
     appState.activeSubject = subject;
     appState.isEditing = true;
+    await hideAdminDivisions();
+    hideElement(DOM.adminSection);
+    hideElement(DOM.visitClassRoomBtn);
     await initRouting();
     return;
   }
@@ -1520,6 +1523,9 @@ function renderIndividualSubjectCard() {
 
     card.addEventListener("click", async () => {
       await showSectionLoader("Loading subject...");
+      await hideAdminDivisions();
+      hideElement(DOM.adminSection);
+      hideElement(DOM.visitClassRoomBtn);
       localUserData.userData = adminAppState.userData || localUserData.userData;
       localUserData.isVisitingClass = true;
       localUserData.userData.class = `${adminAppState.activeSem}${adminAppState.activeDiv}`;
@@ -1624,8 +1630,12 @@ DOM.addSubjectPopup.confirmBtn.addEventListener("click", async () => {
 
 window.addEventListener("popstate", () => {
   const urlParams = new URLSearchParams(window.location.search);
+  const subject = urlParams.get("subject");
+  if (subject) return; // Handled by index.js routing
+
   const div = urlParams.get("div");
-  adminAppState.activeSem = "1";
+  const sem = urlParams.get("sem") || adminAppState.activeSem || "1";
+  adminAppState.activeSem = String(sem);
   if (
     div &&
     adminAppState.semesterData?.[adminAppState.activeSem]?.divisionList?.[div]

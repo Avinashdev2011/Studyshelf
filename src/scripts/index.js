@@ -265,6 +265,14 @@ export async function initRouting() {
     setActiveNavIcon(dashboardIcon);
     trackPage(appState.activeSem, appState.activeDiv, "Dashboard");
     await showDashboard();
+    if (
+      localUserData.userData?.role === "admin" ||
+      localUserData.isVisitingClass ||
+      adminAppState.userData?.role === "admin"
+    ) {
+      const adminReturnBtn = document.querySelector(".admin-return-btn");
+      if (adminReturnBtn) showElement(adminReturnBtn);
+    }
     await fadeOutEffect(lottieLoadingScreen);
   } else if (activeSubject) {
     const semParam = params.get("sem");
@@ -336,12 +344,21 @@ export async function hideSections(
   showSidebar = true,
   showHeader = true,
 ) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const isSubjectPage = Boolean(urlParams.get("subject"));
+  const isDashboard = Boolean(urlParams.get("dashboard"));
+  const isPersonalFolder = Boolean(urlParams.get("personal-folder"));
+  const isPyq = Boolean(urlParams.get("pyq"));
+  const isVisitingClassOrContent =
+    isSubjectPage || isDashboard || isPersonalFolder || isPyq || localUserData.isVisitingClass;
+
   const isAdmin =
-    localUserData.userData?.role === "admin" ||
-    appState.role === "admin" ||
-    adminAppState.userData?.role === "admin" ||
-    document.body.classList.contains("is-admin") ||
-    Boolean(new URLSearchParams(window.location.search).get("div"));
+    (localUserData.userData?.role === "admin" ||
+      appState.role === "admin" ||
+      adminAppState.userData?.role === "admin" ||
+      document.body.classList.contains("is-admin") ||
+      Boolean(urlParams.get("div"))) &&
+    !isVisitingClassOrContent;
 
   if (isAdmin) {
     showSidebar = false;
@@ -349,6 +366,8 @@ export async function hideSections(
     showHeaderTitle = true;
     showHeaderIcon = true;
     document.body.classList.add("is-admin");
+  } else {
+    document.body.classList.remove("is-admin");
   }
 
   // Top Bar (Header) visibility
@@ -386,9 +405,32 @@ export async function hideSections(
   const allSections = document.querySelectorAll("section");
   const adminBtnWrapper = document.querySelector(".admin-btn-wrapper");
   const adminReturnBtn = document.querySelector(".admin-return-btn");
+  const visitClassRoomBtn = document.querySelector(".visit-class-room-btn");
+  const adminSection = document.querySelector(".admin-section");
+  const classRoom = document.querySelector(".class-room");
+  const divisionList = document.querySelector(".division-list");
+
   if (adminReturnBtn) hideElement(adminReturnBtn);
 
-  if (isAdmin) {
+  if (isVisitingClassOrContent) {
+    if (adminSection) hideElement(adminSection);
+    if (classRoom) hideElement(classRoom);
+    if (divisionList) hideElement(divisionList);
+    if (visitClassRoomBtn) hideElement(visitClassRoomBtn);
+    if (
+      localUserData.userData?.role === "admin" ||
+      adminAppState.userData?.role === "admin"
+    ) {
+      if (adminBtnWrapper) {
+        adminBtnWrapper.classList.remove("hidden");
+        showElement(adminBtnWrapper);
+      }
+      if (adminReturnBtn) {
+        adminReturnBtn.classList.remove("hidden");
+        showElement(adminReturnBtn);
+      }
+    }
+  } else if (isAdmin) {
     if (adminBtnWrapper) {
       adminBtnWrapper.classList.remove("hidden");
       showElement(adminBtnWrapper);
@@ -417,8 +459,9 @@ if (adminReturnBtn) {
   adminReturnBtn.addEventListener("click", () => {
     hideElement(adminReturnBtn);
     hideElement(editModeToggleButton);
-    const targetDiv = appState.activeDiv || "E";
-    const targetSem = appState.activeSem || "1";
+    localUserData.isVisitingClass = false;
+    const targetDiv = appState.activeDiv || adminAppState.activeDiv || "E";
+    const targetSem = appState.activeSem || adminAppState.activeSem || "1";
     adminAppState.activeSem = targetSem;
     adminAppState.activeDiv = targetDiv;
     history.pushState({}, "", `/?div=${encodeURIComponent(targetDiv)}&sem=${targetSem}`);
@@ -479,7 +522,7 @@ window.addEventListener("popstate", () => {
   else if (
     localUserData.userData.role &&
     localUserData.userData.role === "admin" &&
-    !localUserData.userData.isVisitingClass
+    !localUserData.isVisitingClass
   ) {
     initAdminRouting();
   } else {

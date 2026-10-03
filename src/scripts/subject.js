@@ -239,12 +239,15 @@ subjectIcon.className = "h-full w-full";
 
 export async function loadSubjectSection() {
   try {
-    subjectIcon.src = appState.subjectMetaData[appState.activeSubject].iconLink;
+    const subjMeta = appState.subjectMetaData?.[appState.activeSubject] || {
+      name: appState.activeSubject,
+      iconLink: "",
+    };
+    subjectIcon.src = subjMeta.iconLink || "";
     headerIcon.innerHTML = "";
     headerIcon.classList.remove("bg-primary");
     headerIcon.appendChild(subjectIcon);
-    headerTitle.textContent =
-      appState.subjectMetaData[appState.activeSubject].name;
+    headerTitle.textContent = subjMeta.name || appState.activeSubject;
     await unloadSubjectSection();
     renderNoticeSlider();
     await renderUpcomingSubmissions();
@@ -272,14 +275,21 @@ export function renderNoticeSlider() {
   const noticeEntries =
     appState.divisionData?.noticeData?.subjectNoticeData?.[
       appState.activeSubject
-    ] || {};
-  if (Object.keys(noticeEntries).length === 0 || !noticeEntries) {
-    DOM.noticeSwiper.swiper.el.classList.add("!hidden");
+    ];
+  if (!noticeEntries || typeof noticeEntries !== "object" || Object.keys(noticeEntries).length === 0) {
+    if (DOM.noticeSwiper?.swiper?.el) {
+      DOM.noticeSwiper.swiper.el.classList.add("!hidden");
+    }
     return;
   }
-  const reverseEntries = Object.fromEntries(
-    Object.entries(noticeEntries).reverse(),
-  );
+  const entries = Object.entries(noticeEntries);
+  if (!entries || entries.length === 0) {
+    if (DOM.noticeSwiper?.swiper?.el) {
+      DOM.noticeSwiper.swiper.el.classList.add("!hidden");
+    }
+    return;
+  }
+  const reverseEntries = Object.fromEntries([...entries].reverse());
   DOM.noticeSwiper.swiper.el.classList.remove("!hidden");
   for (const key in reverseEntries) {
     const noticeData = reverseEntries[key];
@@ -1012,12 +1022,8 @@ DOM.itemPopup.editTools.deleteBtn.addEventListener("click", async () => {
 });
 function renderResources() {
   const rawCategory =
-    appState.subjectData?.[appState.activeSubject]?.containerList || {};
-  const categoryData = Object.fromEntries(
-    Object.entries(rawCategory).reverse(),
-  );
-  Object.values(categoryData).reverse();
-  if (!categoryData || !Object.keys(categoryData).length) {
+    appState.subjectData?.[appState.activeSubject]?.containerList;
+  if (!rawCategory || typeof rawCategory !== "object" || Object.keys(rawCategory).length === 0) {
     const emptyState = document.createElement("div");
     emptyState.className =
       "dynamic-container flex flex-col items-center justify-center gap-3 p-8 rounded-2xl bg-surface-2/40 border border-surface-2 text-center my-4";
@@ -1044,6 +1050,10 @@ function renderResources() {
     DOM.subjectPageSection.appendChild(emptyState);
     return;
   }
+
+  const categoryData = Object.fromEntries(
+    Object.entries(rawCategory).reverse(),
+  );
 
   for (const categoryId in categoryData) {
     const category = categoryData[categoryId];
