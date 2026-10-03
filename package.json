@@ -1,0 +1,30 @@
+{
+  "name": "studyshelf",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@vite-pwa/assets-generator": "^1.0.0",
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.6.14",
+    "vite": "^7.0.0",
+    "vite-plugin-pwa": "^1.0.2"
+  },
+  "dependencies": {
+    "@sentry/browser": "^10.4.0",
+    "@tailwindcss/vite": "^4.1.11",
+    "crypto-js": "^4.2.0",
+    "firebase": "^12.0.0",
+    "google-auth-library": "^10.3.0",
+    "googleapis": "^150.0.1",
+    "lottie-web": "^5.13.0",
+    "posthog-js": "^1.336.1",
+    "tailwindcss": "^4.1.11",
+    "workbox-precaching": "^7.3.0"
+  }
+}

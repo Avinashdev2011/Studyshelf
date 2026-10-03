@@ -1,0 +1,2914 @@
+<!doctype html>
+<html
+  lang="en"
+  class="bg-surface-1 no-scroll-bar h-full lg:text-[0.8rem] 2xl:text-[1rem]"
+>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- PWA -->
+
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#000000" />
+
+    <!-- SEO -->
+
+    <title>StudyShelf – Study Materials, Notes & Student Portal</title>
+
+    <meta
+      name="description"
+      content="StudyShelf is a centralized dashboard for students providing study materials, notes, submissions, announcements, and important academic updates."
+    />
+
+    <meta
+      name="keywords"
+      content="StudyShelf, study shelf, college notes, polytechnic study materials, engineering diploma notes, submissions portal, college study resources"
+    />
+
+    <meta name="robots" content="index, follow" />
+
+    <!-- Canonical -->
+
+    <link rel="canonical" href="https://studyshelf-edu.vercel.app/" />
+
+    <!-- Open Graph (WhatsApp / Facebook / LinkedIn preview) -->
+
+    <meta
+      property="og:title"
+      content="StudyShelf – Study Materials & Student Portal"
+    />
+    <meta
+      property="og:description"
+      content="Access study materials, submissions, announcements and academic updates on StudyShelf."
+    />
+    <meta property="og:url" content="https://studyshelf-edu.vercel.app/" />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter preview -->
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="StudyShelf – Study Materials & Student Portal"
+    />
+    <meta
+      name="twitter:description"
+      content="Study materials, submissions and updates on StudyShelf."
+    />
+
+    <!-- Favicon -->
+
+    <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+    <link rel="stylesheet" href="src/style.css" />
+
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+    </style>
+
+    <!-- External icon library -->
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.6.0/remixicon.css"
+      integrity="sha512-kJlvECunwXftkPwyvHbclArO8wszgBGisiLeuDFwNM8ws+wKIw0sv1os3ClWZOcrEB2eRXULYUsm8OVRGJKwGA=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+      integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+
+    <!-- Libraries -->
+
+    <script
+      src="https://unpkg.com/@dotlottie/player-component@2.7.12/dist/dotlottie-player.mjs"
+      type="module"
+    ></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  </head>
+
+  <body
+    class="text-text-primary bg-surface-1 transition-theme flex min-h-full w-full transition-all duration-200"
+  >
+    <!-- error section -->
+    <div
+      class="error-section bg-surface-1 fixed z-[100] flex hidden h-full w-full flex-col items-center justify-center gap-5 transition-all duration-200"
+    >
+      <div class="image-container w-full max-w-[22.5rem]"></div>
+      <div
+        class="text-text-primary flex flex-wrap items-center justify-center gap-2 text-center text-2xl font-semibold"
+      >
+        <p class=""></p>
+        Ooops! , something went wrong
+        <p class="shrink-0">: &#40;</p>
+      </div>
+      <a href="">
+        <button class="button-hug">Reload</button>
+      </a>
+    </div>
+    <!-- offline section -->
+    <div
+      class="offline-section bg-surface-1 fixed z-[100] flex hidden h-full w-full flex-col items-center justify-center gap-4 transition-all duration-300"
+    >
+      <div class="imageWrapper">
+        <img src="" alt="" class="max-w-[13rem] lg:max-w-[22.5rem]" />
+      </div>
+      <div class="popup"></div>
+
+      <div
+        class="text-text-primary flex flex-wrap items-center justify-center gap-2 text-center text-2xl font-semibold"
+      >
+        <p class="">You are offline</p>
+        <p class="shrink-0">: &#40;</p>
+      </div>
+    </div>
+    <!-- initial loading screen -->
+    <div
+      class="lottie-loading-screen bg-surface-1 fixed top-0 left-0 z-80 flex hidden h-full w-full items-center justify-center py-4 transition-all duration-200"
+    >
+      <div
+        class="loading-wrapper flex max-w-40 flex-col items-center gap-4"
+      ></div>
+    </div>
+    <!-- section loader -->
+    <div
+      class="task-loader-wrapper fixed top-0 left-0 z-80 flex hidden h-full w-full flex-col items-center justify-center gap-2 rounded-3xl bg-[#00000080] backdrop-blur-xs transition-all duration-100"
+    >
+      <div class="loader"></div>
+      <p class="loader-status">Loading</p>
+    </div>
+    <!-- success screen -->
+    <div
+      class="success-screen bg-surface-1 fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center py-4 transition-all duration-300"
+    >
+      <div class="success-wrapper flex items-center gap-1">
+        <dotlottie-player
+          id="success-lottie-animation"
+          src="lottie-animiations/done.lottie"
+          background="transparent"
+          speed="1"
+          direction="1"
+          playMode="normal"
+          class="h-10 w-10"
+        ></dotlottie-player>
+        <p class="success-text">Created Successfully</p>
+      </div>
+    </div>
+    <!-- navigation -->
+    <nav
+      class="side-bar fixed bottom-0 left-0 z-40 mb-7 flex hidden w-full justify-center opacity-0 transition-all duration-150 lg:top-0 lg:mb-0 lg:h-full lg:w-fit"
+    >
+      <div
+        class="side-bar-content border-nav-border bg-nav-fill lg:bg-surface-1 nav-glow transition-theme lg:border-surface-3 relative flex w-fit translate-x-0 transform items-baseline gap-7 rounded-full border-2 px-7 pt-2 pb-5 lg:h-full lg:flex-col lg:items-center lg:rounded-none lg:border-0 lg:border-r-2 lg:px-2.5 lg:py-3 lg:shadow-none"
+      >
+        <img
+          src=""
+          alt=""
+          loading="lazy"
+          class="navigation-user-pfp user-pfp hidden h-12 w-12 cursor-pointer lg:inline-block"
+        />
+        <span
+          class="icon-wrapper home-icon z-40 h-[1.55rem] cursor-pointer lg:h-[1.875rem]"
+        >
+          <svg
+            width="18"
+            height="20"
+            viewBox="0 0 18 20"
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-full w-full"
+            fill="none"
+          >
+            <path
+              d="M6.2 18.5H1.7C1.3134 18.5 1 18.1866 1 17.8V8.31764C1 8.11578 1.08714 7.92376 1.23905 7.79083L8.53905 1.40333C8.80297 1.17241 9.19703 1.17241 9.46095 1.40333L16.761 7.79083C16.9129 7.92376 17 8.11578 17 8.31764V17.8C17 18.1866 16.6866 18.5 16.3 18.5H11.7143C11.3277 18.5 11.0143 18.1866 11.0143 17.8V12.7724C11.0143 12.3858 10.7009 12.0724 10.3143 12.0724H7.6C7.2134 12.0724 6.9 12.3858 6.9 12.7724V17.8C6.9 18.1866 6.5866 18.5 6.2 18.5Z"
+              stroke-width="1.5"
+            />
+          </svg>
+        </span>
+        <span
+          class="icon-wrapper subject-icon z-40 h-6 cursor-pointer lg:h-[1.875rem]"
+        >
+          <svg
+            width="27"
+            height="32"
+            viewBox="0 0 27 32"
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-full w-full"
+            fill="none"
+          >
+            <path
+              d="M1 27.5007C1 20.2056 1 5.1538 1 3.30766C1 1.46153 3.05128 1 4.07692 1H25.6154V24.0766H4.07692C3.05128 24.3081 1 25.3169 1 27.5007ZM1 27.5007C1 28.667 1.61538 30.9996 4.07692 30.9996C6.53846 30.9996 20.2308 30.9996 26.3846 30.9996"
+              stroke-width="2"
+            />
+            <path
+              d="M25.0965 24.0771C24.3273 25.6156 23.2504 29.154 25.0965 31.0001"
+              stroke-width="2"
+            />
+            <path
+              d="M20.5 7H6.5C6.22386 7 6 7.22386 6 7.5V11.5C6 11.7761 6.22386 12 6.5 12H20.5C20.7761 12 21 11.7761 21 11.5V7.5C21 7.22386 20.7761 7 20.5 7Z"
+              stroke-width="2"
+            />
+          </svg>
+        </span>
+        <span
+          class="icon-wrapper timetable-icon z-40 h-[1.6rem] cursor-pointer lg:h-[1.875rem]"
+        >
+          <svg
+            width="20"
+            height="22"
+            viewBox="0 0 20 22"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-full w-full"
+          >
+            <path
+              d="M17.0996 3.2998H3.09961C1.99504 3.2998 1.09961 4.19524 1.09961 5.2998V18.2998C1.09961 19.4044 1.99504 20.2998 3.09961 20.2998H17.0996C18.2042 20.2998 19.0996 19.4044 19.0996 18.2998V5.2998C19.0996 4.19524 18.2042 3.2998 17.0996 3.2998Z"
+              stroke-width="1.5"
+            />
+            <path d="M1 8H19" stroke="" stroke-width="1.5" />
+            <path d="M5 1.5V5" stroke-width="1.5" stroke-linecap="round" />
+            <path d="M15 1.5V5" stroke-width="1.5" stroke-linecap="round" />
+          </svg>
+        </span>
+        <span
+          class="icon-wrapper personal-folder-icon z-40 hidden h-4 -translate-y-1 transform cursor-pointer lg:flex lg:h-[2.1rem] lg:translate-y-0"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="lucide lucide-folder-icon lucide-folder h-full w-full"
+          >
+            <path
+              d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
+            />
+          </svg>
+        </span>
+        <div
+          class="slider bg-nav-selector lg:bg-surface-2 lg:border-nav-selector absolute bottom-3 left-0 z-10 h-1 w-6 translate-x-0 transform rounded-lg transition-all duration-100 lg:bottom-auto lg:h-12 lg:w-full lg:rounded-none lg:border-r-4"
+        ></div>
+        <div
+          class="theme-btn mt-auto hidden !hidden h-12 w-12 cursor-pointer rounded-full"
+        ></div>
+      </div>
+    </nav>
+    <main
+      class="flex min-h-full w-full min-w-0 flex-1 flex-col gap-4 px-4 py-3 lg:mb-0 lg:ml-[4.375rem]"
+    >
+      <!-- navbar -->
+      <header class="flex hidden w-full items-center gap-2 lg:gap-3">
+        <div
+          class="header-icon bg-primary flex h-11 w-11 shrink-0 items-center justify-center rounded-full lg:h-12 lg:w-12"
+        >
+          <svg
+            width="20"
+            height="26"
+            viewBox="0 0 20 26"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            xmlns:xlink="http://www.w3.org/1999/xlink"
+          >
+            <mask
+              id="mask0_950_5400"
+              style="mask-type: alpha"
+              maskUnits="userSpaceOnUse"
+              x="0"
+              y="0"
+              width="20"
+              height="26"
+            >
+              <rect width="20" height="26" fill="url(#pattern0_950_5400)" />
+            </mask>
+            <g mask="url(#mask0_950_5400)">
+              <rect x="-1" width="22" height="25" fill="white" />
+            </g>
+            <defs>
+              <pattern
+                id="pattern0_950_5400"
+                patternContentUnits="objectBoundingBox"
+                width="1"
+                height="1"
+              >
+                <use
+                  xlink:href="#image0_950_5400"
+                  transform="matrix(0.046875 0 0 0.0360577 -0.25 -0.0769231)"
+                />
+              </pattern>
+              <image
+                id="image0_950_5400"
+                width="32"
+                height="32"
+                preserveAspectRatio="none"
+                xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAdElEQVR4nO2TQQqAQAhFvVYdIjpJXbtbvDbtWiRqIyM+cDMoPviOSGMEOIHrqWP08p03W+QCLQuwapvDBcTYrxaQj7fo2TkEtNQT8NAClIgA5dGl/QL5W8BDDQGyIyBbwEMNAbIjIFvAQwtgjSCaeQQaGcgNJKA3wwCTxc8AAAAASUVORK5CYII="
+              />
+            </defs>
+          </svg>
+        </div>
+        <p
+          class="header-title hidden w-full items-center truncate text-2xl font-semibold"
+        ></p>
+        <button class="button-hug edit-mode-toggle-btn ml-auto hidden shrink-0">
+          Edit
+        </button>
+        <button
+          class="button-hug personal-folder-edit-mode-toggle-btn ml-auto hidden shrink-0"
+        >
+          Edit
+        </button>
+        <button
+          class="button-hug admin-return-btn ml-2 hidden shrink-0"
+        >
+          Back to Admin
+        </button>
+        <div class="admin-btn-wrapper ml-auto flex hidden gap-2">
+          <button class="button-hug visit-class-room-btn hidden">View</button>
+
+          <button class="button-hug admin-logout-btn">Logout</button>
+        </div>
+      </header>
+
+      <div
+        id="toast-container"
+        class="pointer-events-none fixed top-0 right-0 z-50 flex w-full flex-col items-end gap-2 p-4"
+      ></div>
+
+      <!-- theme feature update -->
+      <div
+        class="theme-feature-update-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+      >
+        <div
+          class="popup bg-surface-2 flex w-full max-w-[20rem] flex-col gap-2 rounded-2xl"
+        >
+          <video autoplay loop muted class="w-full rounded-t-2xl" playsinline>
+            <source
+              src="https://ik.imagekit.io/ik0myx9mu/WhatsApp%20Video%202025-10-03%20at%206.50.34%20PM.mp4?updatedAt=1759497683705"
+              type="video/mp4"
+            />
+          </video>
+          <div class="content-wrapper flex flex-col gap-2 p-4">
+            <div class="title-batch-wrapper flex items-center justify-between">
+              <p class="popup-title flex text-xl font-semibold">
+                Introducing Themes
+              </p>
+              <div
+                class="badge bg-primary text-on-primary rounded-full px-2 py-0.5 text-xs"
+              >
+                New
+              </div>
+            </div>
+            <p class="description text-text-secondary text-sm">
+              Our new Themes feature lets you personalize your experience with
+              over 40+ unique options. From vibrant and colorful to sleek and
+              minimal, there’s a look for every mood. Switch anytime and give
+              your interface a fresh new vibe!
+            </p>
+            <button class="success-btn button-fill mt-3 w-full">
+              Try Themes
+            </button>
+          </div>
+        </div>
+      </div>
+      <!-- allow notification  -->
+      <div
+        class="allow-notification-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+      >
+        <div
+          class="popup bg-surface-2 relative flex w-full max-w-[18.75rem] flex-col gap-4 rounded-3xl p-6"
+        >
+          <div class="wrapper flex w-full items-center justify-between">
+            <p class="popup-title text-2xl font-semibold">Allow notification</p>
+          </div>
+          <p class="text-text-primary description">
+            Allow notification to stay updated
+          </p>
+          <button class="success-btn button-fill relative mt-3">
+            Allow notification
+          </button>
+          <button class="close-popup-btn">No,thanks</button>
+        </div>
+      </div>
+      <!-- allow notification in settings-->
+      <div
+        class="allow-notification-settings-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+      >
+        <div
+          class="popup bg-surface-2 relative flex w-full max-w-[18.75rem] flex-col gap-4 rounded-3xl p-6"
+        >
+          <div class="wrapper flex w-full items-center justify-between">
+            <p class="popup-title text-2xl font-semibold">Allow notification</p>
+            <i
+              class="fa-solid fa-xmark close-popup-btn cursor-pointer text-xl"
+            ></i>
+          </div>
+          <p class="text-text-primary description">
+            Allow notification in settings
+          </p>
+        </div>
+      </div>
+      <!-- updates -->
+      <div
+        class="updates-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+      >
+        <div
+          class="popup bg-surface-2 relative flex max-h-full w-full max-w-[18.75rem] flex-col gap-4 rounded-3xl p-6"
+        >
+          <div class="wrapper flex items-center gap-2">
+            <p class="popup-title text-2xl font-semibold">Updates</p>
+            <i class="fa-solid fa-bell text-text-secondary text-xl"></i>
+          </div>
+          <div
+            class="card-container flex h-full flex-col gap-2 overflow-y-auto"
+          ></div>
+          <button class="success-btn button-fill relative">Okay</button>
+        </div>
+      </div>
+
+      <!-- class room code -->
+      <div
+        class="class-code-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] backdrop-blur-xs transition-all duration-200"
+      >
+        <div
+          class="popup bg-surface-2 relative flex w-full max-w-[18.75rem] flex-col gap-4 rounded-3xl p-6"
+        >
+          <div class="wrapper flex w-full items-center justify-between">
+            <p class="popup-title text-2xl font-semibold">Class room code</p>
+            <i
+              class="fa-solid fa-xmark close-popup-btn cursor-pointer text-xl"
+            ></i>
+          </div>
+          <div class="code-input-wrapper flex flex-col gap-1">
+            <label class="text-text-primary px-1" for="class-code-input"
+              >Code</label
+            >
+            <input
+              type="text"
+              autocomplete="off"
+              class="code-input custom-input"
+              id="class-code-input"
+            />
+            <p class="code-error text-text-error hidden px-1 text-sm"></p>
+          </div>
+          <button class="success-btn button-fill relative mt-3">
+            <div
+              class="btn-loader absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 transition-all duration-100"
+            ></div>
+            <span class="text on-primary transition-all duration-100"
+              >Login</span
+            >
+          </button>
+        </div>
+      </div>
+
+      <!-- themes popup -->
+      <div
+        class="theme-popup-wrapper fixed top-0 left-0 z-60 flex hidden h-full w-full items-center justify-center p-4 transition-all duration-200"
+      >
+        <div
+          class="popup bg-surface-1 transition-theme border-surface-3 relative flex h-full max-h-[60vh] w-full max-w-80 flex-col gap-4 overflow-y-auto rounded-3xl border-2 p-6"
+        >
+          <div class="wrapper flex w-full items-center justify-between">
+            <p class="popup-title text-2xl font-semibold">Themes</p>
+          </div>
+          <div
+            class="theme-option-container no-scroll-bar flex h-full w-full flex-col items-center gap-3 overflow-y-auto"
+          ></div>
+          <div class="flex gap-2">
+            <div class="button-outline close-popup-btn">Cancel</div>
+            <div class="button-fill success-btn">Set</div>
+          </div>
+        </div>
+      </div>
+      <!-- install pwa popup -->
+
+      <!-- menu popup  -->
+      <div
+        class="menu-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full min-h-0 w-full items-start bg-[#00000080] backdrop-blur-xs transition-all duration-200 lg:top-3 lg:left-20 lg:h-fit lg:w-fit lg:bg-transparent"
+      >
+        <div
+          class="popup bg-surface-2 lg:bg-surface-1 lg:border-primary relative mx-auto my-auto flex max-h-[90vh] w-[18.75rem] flex-col items-center gap-2 overflow-y-auto rounded-3xl p-5 shadow transition-all duration-300 lg:w-auto lg:rounded-2xl lg:border-2 lg:p-2"
+        >
+          <div
+            class="pfp-name-wrapper relative flex w-full flex-col items-center gap-2 lg:hidden"
+          >
+            <div class="wrapper relative cursor-pointer">
+              <div
+                class="edit-pfp-btn bg-surface-3 absolute right-0 bottom-0 flex h-5 w-5 translate-1 translate-y-1 items-center justify-center rounded-full"
+              >
+                <i class="fa-solid fa-pen text-text-primary text-[0.5rem]"></i>
+                <div
+                  class="pfp-overlay bg-surface-70 absolute top-0 left-0 flex h-14 w-14 cursor-pointer items-center justify-center rounded-full opacity-0 transition-opacity duration-200 hover:opacity-100"
+                >
+                  Edit
+                </div>
+              </div>
+              <img src="" alt="" class="user-pfp h-14 w-14 rounded-full" />
+            </div>
+            <p class="user-name font-semibold"></p>
+          </div>
+          <div
+            class="medal-point flex cursor-pointer items-center gap-5 lg:hidden"
+          >
+            <div class="points-wrapper flex items-center gap-1">
+              <img
+                src="https://ik.imagekit.io/yn9gz2n2g/others/coin.png?updatedAt=1751607575051"
+                class="h-[1.125rem] w-[1.125rem]"
+                alt=""
+              />
+              <p class="points text-xl">0</p>
+            </div>
+            <div class="medals flex items-center gap-3">
+              <div class="gold-medal flex shrink-0 items-center gap-1">
+                <img
+                  src="https://ik.imagekit.io/yn9gz2n2g/others/gold.png?updatedAt=1751607550552"
+                  class="h-[1.125rem] w-auto"
+                  alt=""
+                />
+                <span class="qty flex items-center"
+                  ><span class="text-xs">x</span>0</span
+                >
+              </div>
+              <div class="silver-medal flex shrink-0 items-center gap-1">
+                <img
+                  src="https://ik.imagekit.io/yn9gz2n2g/others/silver.png?updatedAt=1751607529476"
+                  class="h-[1.125rem] w-auto"
+                  alt=""
+                />
+                <span class="qty flex items-center"
+                  ><span class="text-xs">x</span>0</span
+                >
+              </div>
+              <div class="bronze-medal flex shrink-0 items-center gap-1">
+                <img
+                  src="https://ik.imagekit.io/yn9gz2n2g/others/bronze.png?updatedAt=1751607503968"
+                  class="h-[1.125rem] w-auto"
+                  alt=""
+                />
+                <span class="qty flex items-center"
+                  ><span class="text-xs">x</span>0</span
+                >
+              </div>
+            </div>
+          </div>
+          <div
+            class="wrapper border-surface-3 flex w-full flex-col gap-4 rounded-2xl border-2 p-4 lg:gap-5 lg:border-0"
+          >
+            <div
+              class="wrapper just sm-theme-btn custom-hover hidden !hidden cursor-pointer items-center gap-3"
+            >
+              <div class="theme-btn-sm h-5 w-5 rounded-full"></div>
+              Change theme
+            </div>
+            <div
+              class="account-details-btn wrapper just custom-hover flex cursor-pointer items-center gap-3"
+            >
+              <div
+                class="account-details text-text-tertiary flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r text-center text-lg"
+              >
+                <i class="fa-solid fa-user"></i>
+              </div>
+              Account details
+            </div>
+            <div
+              class="personal-folder-btn wrapper just custom-hover flex cursor-pointer items-center gap-3"
+            >
+              <div
+                class="personal-folder text-text-tertiary flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r text-center text-lg"
+              >
+                <i class="fa-solid fa-folder"></i>
+              </div>
+              Personal Folder
+            </div>
+            <div
+              class="switch-class-btn-wrapper custom-hover flex hidden cursor-pointer items-center gap-3"
+            >
+              <div
+                class="switch-class-btn text-text-tertiary flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r text-center text-lg"
+              >
+                <i class="fa-solid fa-repeat"></i>
+              </div>
+              Switch class
+            </div>
+            <div
+              class="admin-panel-btn-wrapper custom-hover flex hidden cursor-pointer items-center gap-3"
+            >
+              <div
+                class="admin-panel-btn text-text-tertiary flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-r text-center text-lg"
+              >
+                <i class="fa-solid fa-sliders"></i>
+              </div>
+              Admin Panel
+            </div>
+            <div
+              class="logout-btn wrapper just flex cursor-pointer items-center gap-3"
+            >
+              <div
+                class="text-text-tertiary flex h-5 w-5 translate-x-0.5 items-center justify-center rounded-full bg-gradient-to-r text-center text-[1.2rem]"
+              >
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+              </div>
+              Logout
+            </div>
+          </div>
+          <div class="close-popup-btn absolute top-4 right-4 text-xl lg:hidden">
+            <i class="fa-solid fa-xmark text-text-tertiary"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- account details popup -->
+      <div
+        class="account-details-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full min-h-0 w-full items-start bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+      >
+        <div
+          class="popup bg-surface-2 relative mx-auto my-auto flex max-h-[90vh] w-[18.75rem] flex-col items-center gap-2 overflow-y-auto rounded-3xl p-5 transition-all duration-300"
+        >
+          <div
+            class="pfp-name-wrapper relative flex w-full flex-col items-center gap-2"
+          >
+            <div class="wrapper relative cursor-pointer">
+              <div
+                class="edit-pfp-btn bg-surface-3 absolute right-0 bottom-0 z-50 flex h-5 w-5 translate-1 translate-y-1 items-center justify-center rounded-full"
+              >
+                <i class="fa-solid fa-pen text-text-primary text-[0.5rem]"></i>
+              </div>
+              <div
+                class="pfp-overlay bg-surface-70 absolute top-0 left-0 flex h-14 w-14 cursor-pointer items-center justify-center rounded-full opacity-0 transition-opacity duration-200 hover:opacity-100"
+              >
+                Edit
+              </div>
+              <img src="" alt="" class="user-pfp h-14 w-14 rounded-full" />
+            </div>
+            <p class="user-name font-semibold"></p>
+          </div>
+
+          <div class="medal-point-wrapper flex items-center gap-5">
+            <div class="points-wrapper flex items-center gap-1">
+              <img
+                src="https://ik.imagekit.io/yn9gz2n2g/others/coin.png?updatedAt=1751607575051"
+                class="h-[1.125rem] w-[1.125rem]"
+                alt=""
+              />
+              <p class="points text-xl">0</p>
+            </div>
+            <div class="medals flex items-center gap-3">
+              <div class="gold-medal flex shrink-0 items-center gap-1">
+                <img
+                  src="https://ik.imagekit.io/yn9gz2n2g/others/gold.png?updatedAt=1751607550552"
+                  class="h-[1.125rem] w-auto"
+                  alt=""
+                />
+                <span class="qty flex items-center"
+                  ><span class="text-xs">x</span>0</span
+                >
+              </div>
+              <div class="silver-medal flex shrink-0 items-center gap-1">
+                <img
+                  src="https://ik.imagekit.io/yn9gz2n2g/others/silver.png?updatedAt=1751607529476"
+                  class="h-[1.125rem] w-auto"
+                  alt=""
+                />
+                <span class="qty flex items-center">
+                  <span class="text-xs">x</span>0
+                </span>
+              </div>
+              <div class="bronze-medal flex shrink-0 items-center gap-1">
+                <img
+                  src="https://ik.imagekit.io/yn9gz2n2g/others/bronze.png?updatedAt=1751607503968"
+                  class="h-[1.125rem] w-auto"
+                  alt=""
+                />
+                <span class="qty flex items-center"
+                  ><span class="text-xs">x</span>0</span
+                >
+              </div>
+            </div>
+          </div>
+          <div
+            class="wrapper border-surface-3 flex w-full flex-col gap-4 rounded-2xl border-2 p-4 lg:gap-5"
+          >
+            <p class="first-name"></p>
+            <p class="last-name"></p>
+            <p class="email break-all"></p>
+            <p class="roll-no"></p>
+            <p class="semester"></p>
+            <p class="division"></p>
+          </div>
+          <i
+            class="fa-solid fa-xmark text-text-tertiary close-popup-btn absolute top-4 right-4 text-xl"
+          ></i>
+        </div>
+      </div>
+      <!-- pfp selction popup  -->
+      <div
+        class="pfp-selection-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full min-h-0 w-full items-start bg-[#00000080] p-4 px-4 backdrop-blur-xs transition-all duration-200"
+      >
+        <div
+          class="mx-auto my-auto flex h-full max-h-[90vh] w-full max-w-[38rem] flex-col transition-all duration-300"
+        >
+          <form
+            action=""
+            id="pfp-selection-form"
+            class="bg-surface-2 flex min-h-0 flex-col gap-4 rounded-3xl p-6 lg:gap-5"
+          >
+            <div
+              class="wrapper flex w-full shrink-0 flex-col items-center gap-2 lg:gap-3"
+            >
+              <div
+                class="selected-pfp-wrapper image-wrapper h-[4.5rem] w-[4.5rem] transition-all duration-150"
+              >
+                <img
+                  class="h-full w-full"
+                  src="https://ik.imagekit.io/yn9gz2n2g/Avatars/Male/m51.png?updatedAt=1750952706527"
+                />
+              </div>
+              <p class="">Choose a profile photo</p>
+            </div>
+            <div class="wrapper flex min-h-0 w-full flex-col gap-2 lg:gap-3">
+              <div class="gender-selection-wrapper flex w-full">
+                <div
+                  class="male-pfp-toggle-btn bg-surface-3 w-full rounded-xl px-4 py-2 text-center transition-all duration-200"
+                >
+                  Male
+                </div>
+                <div
+                  class="female-pfp-toggle-btn w-full rounded-xl px-4 py-2 text-center transition-all duration-200"
+                >
+                  Female
+                </div>
+              </div>
+              <div
+                class="container-wrapper border-surface-3 h-full min-h-0 rounded-3xl border-2 p-4 lg:gap-5 lg:p-5"
+              >
+                <div
+                  class="pfp-container scrollbar-hide auto-grid-pfp-container h-full w-full overflow-y-scroll transition-all duration-150"
+                ></div>
+              </div>
+            </div>
+            <div class="flex gap-4">
+              <button class="button-outline prev-btn" type="button">
+                Back
+              </button>
+              <button class="button-fill next-btn">Set</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <!-- confirmation popup -->
+      <div
+        class="confirmation-popup-wrapper fixed top-0 left-0 z-80 flex hidden h-full min-h-0 w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+      >
+        <div
+          class="confirmation-popup bg-surface-2 flex max-h-[90vh] w-fit max-w-[18.75rem] flex-col gap-4 overflow-y-auto rounded-3xl p-6"
+        >
+          <div class="wrapper flex flex-col items-center gap-2">
+            <i
+              class="fa-solid fa-triangle-exclamation text-text-error text-4xl"
+            ></i>
+            <p class="title text-lg font-semibold">Are you sure?</p>
+            <p class="text-text-secondary description text-center text-sm">
+              This action cannot be undone.
+            </p>
+          </div>
+          <div class="flex justify-end gap-2">
+            <button class="button-outline cancel-btn">Cancel</button>
+            <button class="button-fill confirm-btn">Confirm</button>
+          </div>
+        </div>
+      </div>
+      <!-- time table popup -->
+      <div
+        class="time-table-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full min-h-0 w-full items-center justify-center bg-[#00000080] p-4 opacity-0 backdrop-blur-xs transition-all duration-200"
+      >
+        <div
+          class="popup time-table flex w-full flex-col gap-2 md:w-fit lg:gap-3"
+        >
+          <div class="wrapper flex items-center justify-between gap-2 lg:gap-3">
+            <p class="main-title ml-4 text-2xl font-semibold">Time table</p>
+
+            <button
+              class="batchToggleBtn border-surface-3 bg-surface-2 mr-auto min-w-12 -translate-y-0.5 transform cursor-pointer rounded-full border px-3 py-1 text-sm"
+            ></button>
+            <i class="fa-solid fa-xmark close-popup-btn mr-4 text-2xl"></i>
+          </div>
+          <div
+            class="card bg-surface-2 flex h-[21.25rem] w-full flex-col gap-5 rounded-3xl p-6 pt-4 md:w-fit"
+          >
+            <div
+              class="swiper !h-full !w-full md:!w-[18.75rem]"
+              id="time-table-popup-swiper"
+            >
+              <div class="swiper-wrapper"></div>
+              <div
+                class="swiper-button-prev !top-4 translate-x-3 transform rounded-full lg:!top-5"
+              >
+                <i
+                  class="ri-arrow-left-s-line text-text-tertiary -translate-x-[0.05rem] text-2xl"
+                ></i>
+              </div>
+              <div
+                class="swiper-button-next !top-4 -translate-x-3 transform rounded-full lg:!top-5"
+              >
+                <i
+                  class="ri-arrow-right-s-line text-text-tertiary translate-x-[0.05rem] transform text-2xl"
+                ></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- add time table popup -->
+      <div
+        class="add-time-table-popup-wrapper fixed top-0 left-0 z-60 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+      >
+        <div
+          class="popup bg-surface-2 relative flex max-h-[90vh] w-full max-w-80 flex-col gap-4 overflow-y-auto rounded-3xl p-6"
+        >
+          <div class="wrapper flex w-full items-center justify-between">
+            <p class="popup-title text-2xl font-semibold">Add Slot</p>
+            <i class="fa-solid fa-xmark close-popup-btn text-xl"></i>
+          </div>
+          <div
+            class="wrapper delete-btn border-text-error text-text-error flex hidden w-fit items-center gap-2 rounded-lg border px-3 py-1"
+          >
+            <i class="fa-solid fa-trash"></i>
+            <p class="text-sm">Delete</p>
+          </div>
+          <div class="subject-type-wrapper flex w-full gap-4">
+            <div class="subject-input-wrapper flex w-1/2 flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="timetable-subject-selection-drop-down"
+                >Subject</label
+              >
+              <div class="wrapper relative">
+                <select
+                  name="subject"
+                  class="custom-select"
+                  id="timetable-subject-selection-drop-down"
+                >
+                  <option
+                    value=""
+                    class="text-text-secondary"
+                    disabled
+                    selected
+                    hidden
+                  >
+                    Subject
+                  </option>
+                </select>
+                <p
+                  class="subject-placeholder bg-surface-3 text-text-tertiary pointer-events-none absolute top-1/2 left-3 flex -translate-y-1/2 items-center gap-8 transition-all duration-200"
+                >
+                  Subject
+                  <i class="fa-solid fa-angle-down"></i>
+                </p>
+              </div>
+
+              <p class="subject-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <div class="type-input-wrapper flex w-1/2 flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="timetable-type-selection-drop-down"
+                >Type</label
+              >
+              <div class="wrapper relative">
+                <select
+                  name="type"
+                  class="custom-select"
+                  id="timetable-type-selection-drop-down"
+                >
+                  <option
+                    value=""
+                    class="!text-text-secondary"
+                    disabled
+                    selected
+                    hidden
+                  >
+                    Type
+                  </option>
+                </select>
+                <p
+                  class="type-placeholder bg-surface-3 text-text-tertiary pointer-events-none absolute top-1/2 left-3 flex -translate-y-1/2 items-center gap-[3.4rem] transition-all duration-200"
+                >
+                  Type
+                  <i class="fa-solid fa-angle-down"></i>
+                </p>
+              </div>
+
+              <p class="type-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+          </div>
+
+          <div class="from-time-to-time-wrapper flex w-full gap-4">
+            <div class="from-input-wrapper flex w-1/2 min-w-0 flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="timetable-from-time-input"
+                >From</label
+              >
+
+              <div class="wrapper relative">
+                <input
+                  type="time"
+                  autocomplete="off"
+                  id="timetable-from-time-input"
+                  class="from-time-input custom-input"
+                  placeholder="From"
+                />
+                <p
+                  class="from-time-placeholder bg-surface-3 text-text-tertiary pointer-events-none absolute top-1/2 left-3 flex -translate-y-1/2 items-center gap-[3.3rem] transition-all duration-200"
+                >
+                  From
+                  <i class="fa-regular fa-clock"></i>
+                </p>
+              </div>
+              <p
+                class="from-time-error text-text-error hidden px-1 text-sm"
+              ></p>
+            </div>
+            <div class="to-input-wrapper flex w-1/2 min-w-0 flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="timetable-to-time-input"
+                >To</label
+              >
+              <div class="wrapper relative">
+                <input
+                  type="time"
+                  autocomplete="off"
+                  id="timetable-to-time-input"
+                  class="to-time-input custom-input"
+                  placeholder="To"
+                />
+                <p
+                  class="to-time-placeholder bg-surface-3 text-text-tertiary pointer-events-none absolute top-1/2 left-3 flex -translate-y-1/2 items-center gap-[4.6rem] transition-all duration-200"
+                >
+                  To
+                  <i class="fa-regular fa-clock"></i>
+                </p>
+              </div>
+              <p class="to-time-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+          </div>
+
+          <button class="button-fill success-btn" type="button">
+            Add Slot
+          </button>
+        </div>
+      </div>
+      <!-- select class popup -->
+      <div
+        class="select-class-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+      >
+        <div
+          class="popup bg-surface-2 relative flex w-full max-w-[18.75rem] flex-col gap-4 rounded-3xl p-6"
+        >
+          <div class="wrapper flex w-full items-center justify-between">
+            <p class="popup-title text-2xl font-semibold">Select Class</p>
+            <i
+              class="fa-solid fa-xmark close-popup-btn cursor-pointer text-xl"
+            ></i>
+          </div>
+          <div class="card-container flex flex-col gap-4"></div>
+        </div>
+      </div>
+      <!-- login-section -->
+      <section
+        class="login-section flex hidden h-full w-full flex-col items-center justify-center gap-2 transition-all duration-200"
+      >
+        <form
+          id="login-form"
+          class="bg-surface-2 flex w-full max-w-[22.5rem] flex-col items-center gap-4 rounded-3xl p-6 lg:max-w-[21.25rem]"
+        >
+          <div class="swiper-text-wrapper flex flex-col items-center gap-2">
+            <div class="swiper h-16 w-16" id="login-section-swiper">
+              <!-- Additional required wrapper -->
+              <div class="swiper-wrapper">
+                <!-- Slides -->
+                <div class="swiper-slide">
+                  <img
+                    src="https://ik.imagekit.io/yn9gz2n2g/Avatars/Male/m14.png?updatedAt=1750951353530"
+                    alt=""
+                  />
+                </div>
+                <div class="swiper-slide">
+                  <img
+                    src="https://ik.imagekit.io/yn9gz2n2g/Avatars/Female/female175.png?updatedAt=1754894768522"
+                    alt=""
+                  />
+                </div>
+                <div class="swiper-slide">
+                  <img
+                    src="https://ik.imagekit.io/yn9gz2n2g/Avatars/Male/m51.png?updatedAt=1750952706527"
+                    alt=""
+                  />
+                </div>
+                <div class="swiper-slide">
+                  <img
+                    src="https://ik.imagekit.io/yn9gz2n2g/Avatars/Female/female28.png?updatedAt=1750985915376"
+                    alt=""
+                  />
+                </div>
+              </div>
+            </div>
+            <p class="text-text-primary text-2xl font-medium">Login</p>
+            <p id="form-related-error" class="text-text-error text-sm"></p>
+          </div>
+          <div class="email-input-wrapper flex w-full flex-col gap-1">
+            <label class="text-text-primary px-1 text-sm" for="email-input"
+              >Email</label
+            >
+
+            <input
+              type="email"
+              autocomplete="off"
+              id="email-input"
+              class="custom-input"
+            />
+            <p
+              id="email-related-error"
+              class="text-text-error px-1 text-sm"
+            ></p>
+          </div>
+          <div class="password-input-wrapper flex w-full flex-col gap-1">
+            <label class="text-text-primary px-1 text-sm" for="email-input"
+              >Password</label
+            >
+            <input type="password" id="password-input" class="custom-input" />
+            <p
+              id="password-related-error"
+              class="text-text-error px-1 text-sm"
+            ></p>
+            <div class="wrapper flex w-full justify-between">
+              <div class="checkbox-wrapper flex items-center gap-2">
+                <div class="flex items-center">
+                  <div class="relative flex cursor-pointer items-center">
+                    <input
+                      type="checkbox"
+                      class="peer bg-surface-3 checked:bg-primary !h-4 !w-4 cursor-pointer appearance-none rounded transition-all"
+                      id="keep-login-check"
+                    />
+                    <span
+                      class="text-text-primary pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform opacity-0 peer-checked:opacity-100"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-3 w-3"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        stroke="currentColor"
+                        stroke-width="1"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clip-rule="evenodd"
+                        ></path>
+                      </svg>
+                    </span>
+                  </div>
+                </div>
+                <label
+                  for="remember-me-checkbox "
+                  class="text-text-tertiary text-sm"
+                  >Remember me</label
+                >
+              </div>
+              <a
+                href=""
+                class="text-text-link text-sm"
+                id="forgot-password-link"
+                >Forgot password?</a
+              >
+            </div>
+          </div>
+          <button class="login-btn button-fill relative mt-3">
+            <div
+              class="btn-loader absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 transition-all duration-100"
+            ></div>
+            <span class="text transition-all duration-100">Login</span>
+          </button>
+        </form>
+        <div class="no-account-wrapper flex justify-center gap-1 text-sm">
+          <p class="text-text-primary">New here?</p>
+          <p class="text-text-link create-account-link cursor-pointer">
+            Create account
+          </p>
+        </div>
+      </section>
+      <!-- intro section -->
+      <section
+        class="intro-section flex hidden h-full w-full items-center justify-center transition-all duration-300"
+      >
+        <div
+          class="intro-1 border-surface-3 flex h-fit w-fit flex-col items-center justify-center gap-6 transition-all duration-200 lg:flex-row lg:gap-8 lg:rounded-3xl lg:border-4 lg:p-8"
+        >
+          <img
+            src="https://ik.imagekit.io/yn9gz2n2g/others/signUpPageImages/intro1.png?updatedAt=1753620304111"
+            class="intro-img-1 w-full max-w-[25rem]"
+            alt=""
+          />
+          <div
+            class="wrapper flex flex-col items-center gap-6 lg:items-start lg:gap-4"
+          >
+            <p
+              class="w-full text-center text-2xl font-semibold md:max-w-80 lg:text-left"
+            >
+              Notes, PYQ's, Daily updates and many more in One Place
+            </p>
+            <button class="button-hug" id="intro-1-next-btn">
+              Next <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+        <div
+          class="intro-2 border-surface-3 flex hidden h-fit w-fit flex-col items-center justify-center gap-6 transition-all duration-200 lg:flex-row lg:gap-8 lg:rounded-3xl lg:border-4 lg:p-8"
+        >
+          <div class="wrapper absolute top-0 left-0 lg:hidden">
+            <i
+              class="fa-solid fa-arrow-left cursor-pointer p-6 text-2xl"
+              id="intro-2-prev-btn"
+            ></i>
+          </div>
+          <img
+            src="https://ik.imagekit.io/yn9gz2n2g/others/signUpPageImages/intro2.png?updatedAt=1753620303854"
+            class="intro-img-2 w-full max-w-[25rem]"
+            alt=""
+          />
+          <div
+            class="wrapper flex flex-col items-center gap-6 lg:items-start lg:gap-4"
+          >
+            <p
+              class="w-full text-center text-2xl font-semibold md:max-w-80 lg:text-left"
+            >
+              <!-- Elevate Rank Through Weekly Tests, Mini Hackathons, and More
+              -->
+              Elevate your rank through weekly tests, UI and code competitions
+              and earn a certificate!
+            </p>
+            <button class="button-hug" id="intro-2-next-btn">
+              Next <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+        <div
+          class="intro-3 border-surface-3 flex hidden h-fit w-fit flex-col items-center justify-center gap-6 transition-all duration-200 lg:flex-row lg:gap-8 lg:rounded-3xl lg:border-4 lg:p-8"
+        >
+          <div class="wrapper absolute top-0 left-0 lg:hidden">
+            <i
+              class="fa-solid fa-arrow-left cursor-pointer p-6 text-2xl"
+              id="intro-3-prev-btn"
+            ></i>
+          </div>
+          <img
+            src="https://ik.imagekit.io/yn9gz2n2g/others/signUpPageImages/intro3.png?updatedAt=1753620304118"
+            class="intro-img-3 w-full max-w-[25rem]"
+            alt=""
+          />
+          <div
+            class="wrapper flex flex-col items-center gap-6 lg:items-start lg:gap-4"
+          >
+            <p
+              class="w-full text-center text-2xl font-semibold md:max-w-80 lg:text-left"
+            >
+              Customize Your Profile with over 500+ PFP’s and 40+ custom themes
+            </p>
+            <button class="button-hug" id="intro-3-next-btn">
+              Next
+              <i class="fa-solid fa-arrow-right cursor-pointer"></i>
+            </button>
+          </div>
+        </div>
+        <div
+          class="intro-4 border-surface-3 flex hidden h-fit w-fit flex-col items-center justify-center gap-6 transition-all duration-200 lg:flex-row lg:gap-8 lg:rounded-3xl lg:border-4 lg:p-8"
+        >
+          <div class="wrapper absolute top-0 left-0 lg:hidden">
+            <i
+              class="fa-solid fa-arrow-left cursor-pointer p-6 text-2xl"
+              id="intro-4-prev-btn"
+            ></i>
+          </div>
+
+          <img
+            src="https://ik.imagekit.io/yn9gz2n2g/others/signUpPageImages/intro4.png?updatedAt=1753620304116"
+            class="intro-img-4 w-full max-w-[25rem]"
+            alt=""
+          />
+          <div
+            class="wrapper flex flex-col items-center gap-6 lg:items-start lg:gap-4"
+          >
+            <p
+              class="w-full text-center text-3xl font-semibold md:max-w-80 lg:text-left"
+            >
+              Everything You Need,<br />
+              One Tap Away
+            </p>
+            <button class="button-hug" id="intro-4-next-btn">
+              Get Started
+              <i class="fa-solid fa-arrow-right cursor-pointer"></i>
+            </button>
+          </div>
+        </div>
+      </section>
+      <!-- student details section -->
+      <section
+        class="student-details-section flex hidden h-full w-full items-center justify-center transition-all duration-300"
+      >
+        <form
+          id="student-details-form"
+          class="bg-surface-2 flex w-full max-w-[18.75rem] flex-col items-center gap-4 rounded-3xl p-6 lg:gap-5"
+        >
+          <p class="w-full text-start text-2xl font-semibold">Create account</p>
+          <div class="first-name-input-wrapper flex w-full flex-col gap-1">
+            <label class="px-1 text-sm" for="first-name-input"
+              >First name</label
+            >
+            <input
+              type="text"
+              autocomplete="off"
+              id="first-name-input"
+              class="custom-input"
+            />
+            <p class="first-name-related-error error-text-style hidden"></p>
+          </div>
+          <div class="last-name-input-wrapper flex w-full flex-col gap-1">
+            <label class="px-1 text-sm" for="last-name-input">Last name</label>
+            <input
+              type="text"
+              id="last-name-input"
+              autocomplete="off"
+              class="custom-input"
+            />
+            <p class="last-name-related-error error-text-style hidden"></p>
+          </div>
+          <div class="roll-no-input-wrapper flex w-full flex-col gap-1">
+            <label class="px-1 text-sm" for="roll-no-input">Roll no</label>
+            <input
+              type="number"
+              id="roll-no-input"
+              autocomplete="off"
+              class="custom-input"
+              maxlength="6"
+            />
+            <p class="roll-no-related-error error-text-style hidden"></p>
+          </div>
+          <button class="next-btn button-fill relative mt-2">
+            <div
+              class="btn-loader absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 transition-all duration-100"
+            ></div>
+            <span class="btn-text on-primary transition-all duration-100"
+              >Next</span
+            >
+          </button>
+        </form>
+      </section>
+      <!-- student credential -->
+      <section
+        class="student-credentials-section flex hidden h-full w-full items-center justify-center transition-all duration-200"
+      >
+        <form
+          id="student-credentials-form"
+          class="bg-surface-2 flex w-full max-w-[18.75rem] flex-col items-center gap-4 rounded-3xl p-6 lg:gap-5"
+        >
+          <p class="w-full text-start text-2xl font-semibold">Create account</p>
+          <div class="email-input-wrapper flex w-full flex-col gap-1">
+            <label class="px-1 text-sm" for="sign-up-email-input">Email</label>
+
+            <input
+              type="email"
+              autocomplete="off"
+              id="sign-up-email-input"
+              class="custom-input"
+            />
+            <p class="email-related-error error-text-style hidden"></p>
+          </div>
+          <div class="password-input-wrapper flex w-full flex-col gap-1">
+            <label class="px-1 text-sm" for="sign-up-password-input"
+              >Create Password</label
+            >
+            <input
+              type="password"
+              autocomplete="off"
+              id="sign-up-password-input"
+              class="custom-input"
+            />
+            <p class="password-related-error error-text-style hidden"></p>
+          </div>
+          <div
+            class="re-enter-password-input-wrapper flex w-full flex-col gap-1"
+          >
+            <label class="px-1 text-sm" for="sign-up-confirm-password-input"
+              >Re-enter Password</label
+            >
+            <input
+              type="password"
+              id="sign-up-confirm-password-input"
+              autocomplete="off"
+              class="custom-input"
+            />
+            <p
+              class="confirm-password-related-error error-text-style hidden"
+            ></p>
+          </div>
+          <div class="mt-2 flex w-full gap-4">
+            <button class="prev-btn button-outline gap-2" type="button">
+              Back
+            </button>
+            <button class="next-btn button-fill relative">
+              <div
+                class="btn-loader absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 transition-all duration-100"
+              ></div>
+              <span class="btn-text on-primary transition-all duration-100"
+                >Next</span
+              >
+            </button>
+          </div>
+        </form>
+      </section>
+      <!-- pfp section -->
+      <section
+        class="pfp-selection-section flex hidden h-full w-full flex-col items-center justify-center transition-all duration-300"
+      >
+        <form
+          action=""
+          id="signup-pfp-selection-form"
+          class="bg-surface-2 flex max-h-[80vh] min-h-0 w-full max-w-[37rem] flex-col gap-4 rounded-3xl p-6 lg:gap-5"
+        >
+          <div
+            class="wrapper flex w-full shrink-0 flex-col items-center gap-2 lg:gap-3"
+          >
+            <div
+              class="selected-pfp-wrapper image-wrapper h-[4.5rem] w-[4.5rem] transition-all duration-150"
+            >
+              <img
+                class="h-full w-full"
+                src="https://ik.imagekit.io/yn9gz2n2g/Avatars/Male/m51.png?updatedAt=1750952706527"
+              />
+            </div>
+            <p class="">Choose a profile photo</p>
+          </div>
+          <div
+            class="wrapper flex h-full min-h-0 w-full flex-col gap-2 lg:gap-3"
+          >
+            <div class="gender-selection-wrapper flex w-full">
+              <div
+                class="male-pfp-toggle-btn bg-surface-3 w-full cursor-pointer rounded-xl px-4 py-2 text-center transition-all duration-200"
+              >
+                Male
+              </div>
+              <div
+                class="female-pfp-toggle-btn w-full cursor-pointer rounded-xl px-4 py-2 text-center transition-all duration-200"
+              >
+                Female
+              </div>
+            </div>
+            <div
+              class="container-wrapper border-surface-3 h-full min-h-0 rounded-3xl border-2 p-4 lg:gap-5 lg:p-5"
+            >
+              <div
+                class="pfp-container scrollbar-hide auto-grid-pfp-container h-full w-full overflow-y-scroll transition-all duration-150"
+              ></div>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <button class="button-outline prev-btn" type="button">Back</button>
+            <button class="button-fill success-btn">Next</button>
+          </div>
+        </form>
+      </section>
+      <!-- student summary section -->
+      <section
+        class="summary-section flex hidden h-full min-h-0 w-full flex-col items-center justify-center gap-3 transition-all duration-300"
+      >
+        <form
+          id="summary-form"
+          class="bg-surface-2 flex w-full max-w-[18.75rem] flex-col items-center gap-4 rounded-3xl p-6"
+        >
+          <div class="wrapper flex w-full items-center gap-4">
+            <img
+              src="https://ik.imagekit.io/yn9gz2n2g/Avatars/Male/m7.png?updatedAt=1750951173704"
+              alt=""
+              id="final-pfp"
+              class="w-14"
+            />
+            <p id="final-name" class="text-xl font-medium">Student Name</p>
+          </div>
+          <div class="wrapper flex w-full flex-col gap-3">
+            <div class="final-roll-no-wrapper flex gap-2">
+              <p>Roll No :</p>
+              <p id="final-roll-no">--</p>
+            </div>
+            <p class="wrapper text-wrap break-all">
+              Email :
+              <span id="final-email" class="break-all"
+                >student@example.com</span
+              >
+            </p>
+
+            <div class="wrapper flex gap-2">
+              <p>Semester :</p>
+              <p id="final-sem">5</p>
+            </div>
+            <div class="wrapper flex gap-2">
+              <p>Div :</p>
+              <p id="final-div">A</p>
+            </div>
+          </div>
+          <div class="flex w-full gap-4">
+            <button class="button-outline prev-btn" type="button">Back</button>
+            <button class="next-btn button-fill relative">
+              <div
+                class="btn-loader absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 transition-all duration-100"
+              ></div>
+              <span class="btn-text on-primary transition-all duration-100"
+                >Create</span
+              >
+            </button>
+          </div>
+        </form>
+        <div class="wrapper flex w-full justify-center gap-1 text-sm">
+          <p class="text-text-tertiary">Wrong sem or div ?</p>
+          <a
+            href="https://docs.google.com/forms/d/e/1FAIpQLSfucQvffnejbrx36Ae6nPU8HIh0BEpx9nZj3tmoI4qJxh6cMQ/viewform?usp=dialog"
+            class="text-text-link"
+            >Report here</a
+          >
+        </div>
+      </section>
+      <!-- reset password section -->
+      <section
+        class="reset-password-section flex hidden h-full w-full flex-col items-center justify-center gap-2 transition-all duration-200"
+      >
+        <form
+          id="reset-password-form"
+          class="bg-surface-2 flex w-full max-w-[22.5rem] flex-col items-center gap-4 rounded-3xl p-6 lg:max-w-[21.25rem]"
+        >
+          <p class="text-text-primary w-full text-start text-2xl font-semibold">
+            Reset Password
+          </p>
+          <div
+            class="registered-email-input-wrapper flex w-full flex-col gap-1"
+          >
+            <label
+              class="text-text-primary px-1 text-sm"
+              for="registered-email-input"
+              >Registered Email</label
+            >
+
+            <input
+              type="email"
+              autocomplete="off"
+              id="registered-email-input"
+              class="custom-input"
+            />
+            <p
+              id="registered-email-related-error"
+              class="text-text-error px-1 text-sm"
+            ></p>
+          </div>
+
+          <button class="reset-password-btn button-fill relative">
+            <div
+              class="btn-loader absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 transition-all duration-100"
+            ></div>
+            <span class="text transition-all duration-100">Reset password</span>
+          </button>
+          <button class="button-outline back-to-login-btn" type="button">
+            Back to login
+          </button>
+        </form>
+      </section>
+      <!-- readmore-popup -->
+      <div
+        id="readmore-popup"
+        class="fixed inset-0 z-40 flex hidden items-center justify-center bg-black/60 p-4 backdrop-blur-sm transition-all duration-200"
+      >
+        <div
+          class="bg-surface-2 relative flex max-h-[90vh] w-full max-w-[37.5rem] flex-col gap-4 overflow-hidden rounded-2xl p-5 text-white"
+        >
+          <div class="wrapper flex items-center justify-between">
+            <div class="slide-icon-title-wrapper flex items-center gap-3">
+              <div
+                class="icon bg-surface-1 flex h-10 w-10 items-center justify-center rounded-full"
+              >
+                <i class="ri-file-text-line text-xl"></i>
+              </div>
+              <p
+                id="readmore-popup-title"
+                class="slider-title text-xl font-semibold"
+              >
+                update-1
+              </p>
+            </div>
+            <i class="fa-solid fa-xmark text-xl" id="close-readmore-popup"></i>
+          </div>
+
+          <div
+            id="readmore-popup-content"
+            class="description text-text-secondary max-h-[50vh] overflow-auto pr-2 text-sm leading-relaxed"
+          >
+            Full notice content will appear here and scroll if too long...
+          </div>
+
+          <!-- Action links -->
+          <a
+            id="popup-attachment-link"
+            class="text-text-link cursor-pointer underline"
+          >
+            See attachment
+          </a>
+        </div>
+      </div>
+      <!-- subjectselector-popup -->
+      <div
+        class="bg-surface-1 subject-selector-popup border-surface-2 fixed bottom-24 z-40 flex hidden -translate-x-16 transform flex-col rounded-2xl border-2 p-3 transition-all duration-100 lg:top-36 lg:bottom-auto lg:left-20 lg:translate-x-0"
+      >
+        <!-- <p class="text-lg font-semibold">Select Subject</p> -->
+        <div class="card-wrapper flex flex-col gap-3"></div>
+      </div>
+      <!-- dashboard section  -->
+      <section
+        class="dashboard-section flex hidden h-full w-full flex-col gap-4 opacity-0 transition-all duration-200 lg:gap-5"
+      >
+        <!-- warning popup -->
+        <div
+          class="warning-popup-wrapper fixed top-0 left-0 z-60 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-100"
+        >
+          <div
+            class="warning-popup bg-surface-2 flex h-fit max-h-[90vh] flex-col items-center justify-center gap-4 overflow-y-auto rounded-3xl p-6 lg:gap-5"
+          >
+            <p class="message text-white">
+              only 1 can be uploaded link or the attachment
+            </p>
+            <button class="button-fill success-btn">Okay</button>
+          </div>
+        </div>
+        <!-- add notice popup -->
+        <div
+          class="add-notice-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="popup bg-surface-2 relative flex max-h-[90vh] w-full max-w-[18.75rem] flex-col gap-4 overflow-y-auto rounded-3xl p-6"
+          >
+            <div class="wrapper flex w-full items-center justify-between">
+              <p class="popup-title text-2xl font-semibold">Add Notice</p>
+              <i class="fa-solid fa-xmark close-popup-btn text-xl"></i>
+            </div>
+            <div class="title-input-wrapper flex flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="dashboard-section-notice-title"
+                >Title</label
+              >
+              <input
+                type="text"
+                autocomplete="off"
+                maxlength="21"
+                id="dashboard-section-notice-title"
+                class="title-input sample-sui custom-input"
+              />
+              <p class="title-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <div class="scope-input-wrapper flex w-full flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="dashboard-section-notice-scope-input"
+                >Scope</label
+              >
+              <div class="wrapper relative">
+                <select
+                  name="scope"
+                  class="custom-select"
+                  id="dashboard-section-notice-scope-input"
+                >
+                  <option
+                    value=""
+                    class="!text-text-secondary"
+                    disabled
+                    selected
+                    hidden
+                  >
+                    Type
+                  </option>
+                  <option value="semester">For semester</option>
+                  <option value="division">For division</option>
+                  <option value="department">For department</option>
+                </select>
+                <p
+                  class="scope-placeholder bg-surface-3 text-text-tertiary pointer-events-none absolute top-1/2 left-3 flex -translate-y-1/2 items-center gap-x-44 transition-all duration-200"
+                >
+                  Type
+                  <i class="fa-solid fa-angle-down"></i>
+                </p>
+              </div>
+              <p class="scope-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <div class="description-input-wrapper flex flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="dashboard-section-notice-description"
+                >Description</label
+              >
+              <textarea
+                id="dashboard-section-notice-description"
+                autocomplete="off"
+                class="description-input custom-input"
+              ></textarea>
+              <p
+                class="description-error text-text-error hidden px-1 text-sm"
+              ></p>
+            </div>
+            <div class="link-input-wrapper flex flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="dashboard-section-notice-link"
+                >Link (Optional)</label
+              >
+              <input
+                type="text"
+                autocomplete="off"
+                id="dashboard-section-notice-link"
+                class="link-input custom-input"
+              />
+              <p class="link-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <div class="or-line flex w-full items-center gap-2 text-center">
+              <div class="line bg-surface-4 h-0.5 w-full"></div>
+              <p class="text-sm">or</p>
+              <div class="line bg-surface-4 h-0.5 w-full"></div>
+            </div>
+            <div class="file-input-wrapper flex cursor-pointer flex-col gap-1">
+              <label class="px-1" for="subject-section-notice-file-input"
+                >Attach File (Optional)</label
+              >
+              <div
+                class="file-attachment bg-surface-3 border-surface-4 flex justify-center gap-2 rounded-3xl border-2 py-6"
+              >
+                <div class="wrapper upload-icon transition-all duration-100">
+                  <i
+                    class="fa-solid fa-arrow-up-from-bracket text-xl font-thin"
+                  ></i>
+                </div>
+                <span class="upload-text">Upload File</span>
+                <input
+                  type="file"
+                  class="hidden"
+                  id="dashboard-section-notice-file-input"
+                />
+              </div>
+              <p class="file-error error-text-style hidden"></p>
+            </div>
+            <button class="button-fill success-btn" type="button">
+              Create
+            </button>
+          </div>
+        </div>
+        <!-- add notice popup -->
+        <div
+          class="send-notification-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="popup bg-surface-2 relative flex max-h-[90vh] w-full max-w-[18.75rem] flex-col gap-4 overflow-y-auto rounded-3xl p-6"
+          >
+            <div class="wrapper flex w-full items-center justify-between">
+              <p class="popup-title text-2xl font-semibold">
+                Send Notification
+              </p>
+              <i class="fa-solid fa-xmark close-popup-btn text-xl"></i>
+            </div>
+            <div class="title-input-wrapper flex flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="dashboard-section-notice-title"
+                >Title</label
+              >
+              <input
+                type="text"
+                autocomplete="off"
+                maxlength="21"
+                id="dashboard-section-notification-title"
+                class="title-input sample-sui custom-input"
+              />
+              <p class="title-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <div class="scope-input-wrapper flex w-full flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="dashboard-section-notification-scope-input"
+                >Scope</label
+              >
+              <div class="wrapper relative">
+                <select
+                  name="scope"
+                  class="custom-select"
+                  id="dashboard-section-notification-scope-input"
+                >
+                  <option
+                    value=""
+                    class="!text-text-secondary"
+                    disabled
+                    selected
+                    hidden
+                  >
+                    Type
+                  </option>
+                  <option value="semester">For semester</option>
+                  <option value="division">For division</option>
+                  <option value="global">For department</option>
+                </select>
+                <p
+                  class="scope-placeholder bg-surface-3 text-text-tertiary pointer-events-none absolute top-1/2 left-3 flex -translate-y-1/2 items-center gap-x-44 transition-all duration-200"
+                >
+                  Type
+                  <i class="fa-solid fa-angle-down"></i>
+                </p>
+              </div>
+              <p class="scope-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <div class="description-input-wrapper flex flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="dashboard-section-notification-description"
+                >Description</label
+              >
+              <textarea
+                id="dashboard-section-notification-description"
+                autocomplete="off"
+                class="description-input custom-input"
+              ></textarea>
+              <p
+                class="description-error text-text-error hidden px-1 text-sm"
+              ></p>
+            </div>
+
+            <button class="button-fill success-btn" type="button">
+              Create
+            </button>
+          </div>
+        </div>
+        <!-- notice slider container -->
+        <div
+          class="swiper relative max-h-[30rem] w-full max-w-full shrink-0"
+          id="dashboard-notice-swiper"
+        >
+          <div class="swiper-wrapper w-full"></div>
+          <div class="swiper-pagination md:hidden"></div>
+          <div
+            class="swiper-button-prev !hidden !h-10 !w-10 transform rounded-full bg-amber-100 md:!flex"
+          >
+            <i
+              class="ri-arrow-left-s-line -translate-x-[0.05rem] text-2xl text-white"
+            ></i>
+          </div>
+          <div
+            class="swiper-button-next !hidden !h-10 !w-10 transform rounded-full md:!flex"
+          >
+            <i
+              class="ri-arrow-right-s-line translate-x-[0.05rem] transform text-2xl text-white"
+            ></i>
+          </div>
+        </div>
+        <button
+          class="button-hug add-notice-btn editor-tool hidden"
+          type="button"
+        >
+          Add notice
+        </button>
+        <button
+          class="button-hug send-notification-btn editor-tool hidden"
+          type="button"
+        >
+          Send notification
+        </button>
+        <div class="upcoming-submissions flex w-full flex-col gap-2 lg:gap-3">
+          <div class="wrapper flex w-full items-center gap-2 lg:gap-3">
+            <p class="text-2xl font-semibold">Upcoming submissions</p>
+          </div>
+          <div class="card-container grid-auto-fit lg:gap-2"></div>
+        </div>
+        <div
+          class="dashboard-diff-section-container flex w-full flex-col flex-wrap gap-4 md:flex-row lg:gap-5"
+        >
+          <!-- time table -->
+          <div class="time-table hidden w-fit flex-col gap-2 lg:flex lg:gap-3">
+            <div class="wrapper flex items-center gap-2">
+              <p class="container-title ml-4 text-2xl font-semibold">
+                Time table
+              </p>
+
+              <button
+                class="batchToggleBtn border-surface-3 bg-surface-2 mr-auto min-w-12 -translate-y-0.5 transform cursor-pointer rounded-full border px-3 py-1 text-sm"
+              ></button>
+            </div>
+
+            <div
+              class="card bg-surface-2 flex h-[21.25rem] w-fit flex-col gap-5 rounded-3xl p-6 pt-4"
+            >
+              <div class="swiper !h-full !w-[18.75rem]" id="time-table-swiper">
+                <div class="swiper-wrapper"></div>
+                <div
+                  class="swiper-button-prev !top-4 translate-x-3 transform rounded-full lg:!top-5"
+                >
+                  <i
+                    class="ri-arrow-left-s-line text-text-tertiary -translate-x-[0.05rem] text-2xl"
+                  ></i>
+                </div>
+                <div
+                  class="swiper-button-next !top-4 -translate-x-3 transform rounded-full lg:!top-5"
+                >
+                  <i
+                    class="ri-arrow-right-s-line text-text-tertiary translate-x-[0.05rem] transform text-2xl"
+                  ></i>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- pyq -->
+          <div
+            class="dashboard-PYQ flex w-full flex-col gap-2 md:w-[21.5rem] lg:gap-3"
+          >
+            <p class="container-title text-2xl font-semibold">PYQ</p>
+            <div
+              class="card bg-surface-2 flex w-full flex-col gap-4 rounded-3xl p-6 lg:h-[21.25rem] lg:justify-between lg:gap-5"
+            >
+              Practice important questions from past exams. Learn the pattern
+              and prepare better! . Question papers are still being collected
+              and will be added soon.
+              <p class="text-text-link text-sm">Coming Soon...</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- subject page section -->
+      <section
+        class="subject-page-section flex hidden min-h-full w-full flex-col gap-4 pb-2 transition-all duration-200 lg:min-h-0 lg:gap-5 lg:pb-0"
+      >
+        <!-- warning popup -->
+        <div
+          class="warning-popup-wrapper fixed top-0 left-0 z-60 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-100"
+        >
+          <div
+            class="warning-popup bg-surface-2 flex h-fit max-h-[90vh] flex-col items-center justify-center gap-4 overflow-y-auto rounded-3xl p-6 lg:gap-5"
+          >
+            <p class="message text-white">
+              only 1 can be uploaded link or the attachment
+            </p>
+            <button class="button-fill success-btn">Okay</button>
+          </div>
+        </div>
+        <!-- add notice popup -->
+        <div
+          class="add-notice-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="popup bg-surface-2 relative flex max-h-[90vh] w-full max-w-[18.75rem] flex-col gap-4 overflow-y-auto rounded-3xl p-6"
+          >
+            <div class="wrapper flex w-full items-center justify-between">
+              <p class="popup-title text-2xl font-semibold">Add Notice</p>
+              <i class="fa-solid fa-xmark close-popup-btn text-xl"></i>
+            </div>
+            <div class="title-input-wrapper flex flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="subject-section-notice-title"
+                >Title</label
+              >
+              <input
+                type="text"
+                autocomplete="off"
+                maxlength="21"
+                id="subject-section-notice-title"
+                class="title-input sample-sui custom-input"
+              />
+              <p class="title-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <div class="description-input-wrapper flex flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="subject-section-notice-description"
+                >Description</label
+              >
+              <textarea
+                id="subject-section-notice-description"
+                autocomplete="off"
+                class="description-input custom-input"
+              ></textarea>
+              <p
+                class="description-error text-text-error hidden px-1 text-sm"
+              ></p>
+            </div>
+            <div class="link-input-wrapper flex flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="subject-section-notice-link"
+                >Link (Optional)</label
+              >
+              <input
+                type="text"
+                autocomplete="off"
+                id="subject-section-notice-link"
+                class="link-input custom-input"
+              />
+              <p class="link-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <div class="or-line flex w-full items-center gap-2 text-center">
+              <div class="line bg-surface-4 h-0.5 w-full"></div>
+              <p class="text-sm">or</p>
+              <div class="line bg-surface-4 h-0.5 w-full"></div>
+            </div>
+            <div class="file-input-wrapper flex cursor-pointer flex-col gap-1">
+              <label class="px-1" for="subject-section-notice-file-input"
+                >Attach File (optional)</label
+              >
+              <div
+                class="file-attachment bg-surface-3 border-surface-4 flex justify-center gap-2 rounded-3xl border-2 py-6"
+              >
+                <div class="wrapper upload-icon transition-all duration-100">
+                  <i
+                    class="fa-solid fa-arrow-up-from-bracket text-xl font-thin"
+                  ></i>
+                </div>
+                <span class="upload-text">Upload File</span>
+                <input
+                  type="file"
+                  class="hidden"
+                  id="subject-section-notice-file-input"
+                />
+              </div>
+              <p class="file-error error-text-style hidden"></p>
+            </div>
+
+            <button class="button-fill success-btn" type="button">
+              Create
+            </button>
+          </div>
+        </div>
+        <!-- add category popup -->
+        <div
+          class="add-category-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="popup bg-surface-2 relative flex w-full max-w-[18.75rem] flex-col gap-4 rounded-3xl p-6"
+          >
+            <div class="wrapper flex w-full items-center justify-between">
+              <p class="popup-title text-2xl font-semibold">Add Category</p>
+              <i
+                class="fa-solid fa-xmark close-popup-btn cursor-pointer text-xl"
+              ></i>
+            </div>
+            <div class="title-input-wrapper flex flex-col gap-1">
+              <label class="text-text-primary px-1" for="category-title-input"
+                >Title</label
+              >
+              <input
+                type="text"
+                autocomplete="off"
+                maxlength="21"
+                class="title-input custom-input"
+                id="category-title-input"
+              />
+              <p class="title-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <button class="button-fill success-btn" type="button">
+              Create
+            </button>
+          </div>
+        </div>
+        <!-- Add item Popup -->
+        <div
+          class="add-item-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="popup bg-surface-2 relative flex max-h-[90vh] w-full max-w-[18.75rem] flex-col gap-4 overflow-y-auto rounded-3xl p-6"
+          >
+            <div class="wrapper flex w-full items-center justify-between">
+              <p class="popup-title text-2xl font-semibold">Add item</p>
+              <i class="fa-solid fa-xmark close-popup-btn text-xl"></i>
+            </div>
+            <div class="wrapper edit-tools flex hidden items-center gap-2">
+              <div
+                class="wrapper delete-icon border-text-error text-text-error flex w-fit cursor-pointer items-center gap-2 rounded-lg border px-3 py-1"
+              >
+                <i class="fa-solid fa-trash"></i>
+                <p class="text-sm">Delete</p>
+              </div>
+              <div
+                class="wrapper unhide-icon border-text-primary flex hidden w-fit cursor-pointer items-center gap-2 rounded-lg border px-3 py-1"
+              >
+                <i class="fa-regular fa-eye"></i>
+                <p class="text-sm">Unhide</p>
+              </div>
+              <div
+                class="wrapper hide-icon border-text-primary flex hidden w-fit cursor-pointer items-center gap-2 rounded-lg border px-3 py-1"
+              >
+                <i class="fa-regular fa-eye-slash"></i>
+                <p class="text-sm">Hide</p>
+              </div>
+            </div>
+            <div class="title-input-wrapper flex flex-col gap-1">
+              <label class="text-text-primary px-1" for="item-title-input"
+                >Name</label
+              >
+              <input
+                type="text"
+                autocomplete="off"
+                id="item-title-input"
+                maxlength="13"
+                class="title-input custom-input"
+              />
+              <p class="title-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <div class="link-input-wrapper flex flex-col gap-1">
+              <label
+                class="text-text-primary link-input-label px-1"
+                for="item-link-input"
+                >Link
+              </label>
+              <input
+                type="text"
+                autocomplete="off"
+                id="item-link-input"
+                class="link-input custom-input"
+              />
+              <p class="link-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <div class="or-line flex w-full items-center gap-2 text-center">
+              <div class="line bg-surface-4 h-0.5 w-full"></div>
+              <p class="text-sm">or</p>
+              <div class="line bg-surface-4 h-0.5 w-full"></div>
+            </div>
+            <div
+              class="item-file-input-wrapper flex cursor-pointer flex-col gap-1"
+            >
+              <label class="px-1" for="item-file-input">Upload file</label>
+              <div
+                class="item-file-attachment-container bg-surface-3 border-surface-4 flex justify-center gap-2 rounded-3xl border-2 py-6"
+              >
+                <div class="wrapper upload-icon transition-all duration-100">
+                  <i
+                    class="fa-solid fa-arrow-up-from-bracket text-xl font-thin"
+                  ></i>
+                </div>
+                <span class="upload-text">Upload File</span>
+                <input type="file" class="hidden" id="item-file-input" />
+              </div>
+              <p class="item-file-error error-text-style hidden">
+                File required
+              </p>
+            </div>
+            <button class="button-fill success-btn" type="button">
+              Create
+            </button>
+            <button
+              class="button-fill change-attachment-btn hidden"
+              type="button"
+            >
+              Change attachment
+            </button>
+          </div>
+        </div>
+        <!-- add submisssion popup -->
+        <div
+          class="add-submission-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="popup bg-surface-2 relative flex max-h-[90vh] w-full max-w-[18.75rem] flex-col gap-4 overflow-y-auto rounded-3xl p-6"
+          >
+            <div class="wrapper flex w-full items-center justify-between">
+              <p class="popup-title popup-title text-2xl font-semibold">
+                Add submission
+              </p>
+              <i
+                class="fa-solid fa-xmark close-popup-btn cursor-pointer text-xl"
+              ></i>
+            </div>
+            <div
+              class="delete-btn flex hidden w-full cursor-pointer items-center justify-start gap-2"
+            >
+              <div
+                class="wrapper border-text-error text-text-error flex w-fit items-center gap-2 rounded-lg border px-3 py-1"
+              >
+                <i class="fa-solid fa-trash"></i>
+                <p class="text-sm">Delete</p>
+              </div>
+            </div>
+            <div class="submission-title-input-wrapper flex flex-col gap-1">
+              <label class="text-text-primary px-1" for="submission-title-input"
+                >Submission name</label
+              >
+              <input
+                type="text"
+                autocomplete="off"
+                maxlength="13"
+                placeholder="e.g. Assignment 1"
+                class="title-input custom-input"
+                id="submission-title-input"
+              />
+              <p class="title-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+
+            <div class="date-input-wrapper relative flex flex-col gap-1">
+              <label class="text-text-primary px-1" for="submission-date-input">
+                Click to choose from calendar
+              </label>
+              <div class="calender-input-wrapper relative w-full">
+                <input
+                  type="date"
+                  id="submission-date-input"
+                  class="date-input custom-input"
+                />
+                <!-- placeholder -->
+                <p
+                  class="fake-placeholder bg-surface-3 text-text-tertiary pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 transition-all duration-200"
+                >
+                  Click to select date
+                </p>
+                <!-- Calendar icon -->
+                <i
+                  class="fa-solid fa-calendar absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer text-gray-400"
+                ></i>
+              </div>
+              <p class="date-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+
+            <button class="button-fill success-btn" type="button">
+              Add submission
+            </button>
+          </div>
+        </div>
+        <!-- notice slider container -->
+        <div
+          class="swiper relative max-h-[30rem] w-full max-w-full shrink-0"
+          id="subject-page-swiper"
+        >
+          <div class="swiper-wrapper w-full"></div>
+          <div class="swiper-pagination md:hidden"></div>
+          <div
+            class="swiper-button-prev -ttranslate-x-4 !hidden !h-10 !w-10 transform rounded-full bg-amber-100 md:!flex"
+          >
+            <i
+              class="ri-arrow-left-s-line -translate-x-[0.05rem] text-2xl text-white"
+            ></i>
+          </div>
+          <div
+            class="swiper-button-next ttranslate-x-4 !hidden !h-10 !w-10 transform rounded-full md:!flex"
+          >
+            <i
+              class="ri-arrow-right-s-line translate-x-[0.05rem] transform text-2xl text-white"
+            ></i>
+          </div>
+        </div>
+        <button
+          class="button-hug add-notice-btn editor-tool hidden"
+          type="button"
+        >
+          Add notice
+        </button>
+        <button
+          class="button-hug editor-tool add-category-container-btn hidden"
+          type="button"
+        >
+          Add Container
+        </button>
+        <!-- upcoming submissions -->
+        <div class="upcoming-submissions flex flex-col gap-2 lg:gap-3">
+          <div class="wrapper flex w-full items-center gap-2 lg:gap-3">
+            <p class="title text-2xl font-semibold">Upcoming submissions</p>
+            <div class="plus-icon editor-tool add-content-btn cursor-pointer">
+              <i class="fa-solid fa-plus cursor-pointer text-2xl"></i>
+            </div>
+          </div>
+
+          <div class="card-container grid-auto-fit"></div>
+        </div>
+      </section>
+
+      <!-- personal folder section  -->
+      <section
+        class="personal-folder-page-section flex hidden min-h-full w-full flex-col gap-4 pb-2 transition-all duration-200 lg:min-h-0 lg:gap-5 lg:pb-0"
+      >
+        <!-- warning popup -->
+        <div
+          class="warning-popup-wrapper fixed top-0 left-0 z-60 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-100"
+        >
+          <div
+            class="warning-popup bg-surface-2 flex h-fit max-h-[90vh] max-w-[18.75rem] flex-col items-center justify-center gap-4 overflow-y-auto rounded-3xl p-6 lg:gap-5"
+          >
+            <p class="message text-white">
+              only 1 can be uploaded link or the attachment
+            </p>
+            <button class="button-fill success-btn">Okay</button>
+          </div>
+        </div>
+        <!-- add category popup -->
+        <div
+          class="add-category-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="popup bg-surface-2 relative flex w-full max-w-[18.75rem] flex-col gap-4 rounded-3xl p-6"
+          >
+            <div class="wrapper flex w-full items-center justify-between">
+              <p class="popup-title text-2xl font-semibold">Add Category</p>
+              <i
+                class="fa-solid fa-xmark close-popup-btn cursor-pointer text-xl"
+              ></i>
+            </div>
+            <div class="title-input-wrapper flex flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="personal-folder-category-title-input"
+                >Title</label
+              >
+              <input
+                type="text"
+                autocomplete="off"
+                maxlength="21"
+                class="title-input custom-input"
+                id="personal-folder-category-title-input"
+              />
+              <p class="title-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <button class="button-fill success-btn" type="button">
+              Create
+            </button>
+          </div>
+        </div>
+        <!-- Add item Popup -->
+        <div
+          class="add-item-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="popup bg-surface-2 relative flex max-h-[90vh] w-full max-w-[18.75rem] flex-col gap-4 overflow-y-auto rounded-3xl p-6"
+          >
+            <div class="wrapper flex w-full items-center justify-between">
+              <p class="popup-title text-2xl font-semibold">Add item</p>
+              <i class="fa-solid fa-xmark close-popup-btn text-xl"></i>
+            </div>
+            <div class="wrapper edit-tools flex hidden items-center gap-2">
+              <div
+                class="wrapper delete-icon border-text-error text-text-error flex w-fit cursor-pointer items-center gap-2 rounded-lg border px-3 py-1"
+              >
+                <i class="fa-solid fa-trash"></i>
+                <p class="text-sm">Delete</p>
+              </div>
+              <div
+                class="wrapper unhide-icon border-text-primary flex hidden w-fit cursor-pointer items-center gap-2 rounded-lg border px-3 py-1"
+              >
+                <i class="fa-regular fa-eye"></i>
+                <p class="text-sm">Unhide</p>
+              </div>
+              <div
+                class="wrapper hide-icon border-text-primary flex hidden w-fit cursor-pointer items-center gap-2 rounded-lg border px-3 py-1"
+              >
+                <i class="fa-regular fa-eye-slash"></i>
+                <p class="text-sm">Hide</p>
+              </div>
+            </div>
+            <div class="title-input-wrapper flex flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="personal-folder-item-title-input"
+                >Name</label
+              >
+              <input
+                type="text"
+                autocomplete="off"
+                id="personal-folder-item-title-input"
+                maxlength="13"
+                class="title-input custom-input"
+              />
+              <p class="title-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <div class="link-input-wrapper flex flex-col gap-1">
+              <label
+                class="text-text-primary link-input-label px-1"
+                for="personal-folder-item-link-input"
+                >Link
+              </label>
+              <input
+                type="text"
+                autocomplete="off"
+                id="personal-folder-item-link-input"
+                class="link-input custom-input"
+              />
+              <p class="link-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <div class="or-line flex w-full items-center gap-2 text-center">
+              <div class="line bg-surface-4 h-0.5 w-full"></div>
+              <p class="text-sm">or</p>
+              <div class="line bg-surface-4 h-0.5 w-full"></div>
+            </div>
+            <div
+              class="item-file-input-wrapper flex cursor-pointer flex-col gap-1"
+            >
+              <label class="px-1" for="personal-folder-item-file-input"
+                >Upload file</label
+              >
+              <div
+                class="item-file-attachment-container bg-surface-3 border-surface-4 flex justify-center gap-2 rounded-3xl border-2 py-6"
+              >
+                <div class="wrapper upload-icon transition-all duration-100">
+                  <i
+                    class="fa-solid fa-arrow-up-from-bracket text-xl font-thin"
+                  ></i>
+                </div>
+                <span class="upload-text">Upload File</span>
+                <input
+                  type="file"
+                  class="hidden"
+                  id="personal-folder-item-file-input"
+                />
+              </div>
+              <p class="item-file-error error-text-style hidden">
+                File required
+              </p>
+            </div>
+            <button class="button-fill success-btn" type="button">
+              Create
+            </button>
+            <button
+              class="button-fill change-attachment-btn hidden"
+              type="button"
+            >
+              Change attachment
+            </button>
+          </div>
+        </div>
+        <button
+          class="button-hug editor-tool add-category-container-btn hidden"
+          type="button"
+        >
+          Add Container
+        </button>
+      </section>
+
+      <!-- admin section -->
+      <section
+        class="admin-section flex hidden h-full w-full flex-col items-center justify-center gap-4 transition-all duration-200"
+      >
+        <!-- edit name popup -->
+        <div
+          class="edit-name-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="popup bg-surface-2 relative flex w-full max-w-[18.75rem] flex-col gap-4 rounded-3xl p-6"
+          >
+            <div class="wrapper flex w-full items-center justify-between">
+              <p class="popup-title text-2xl font-semibold">Change name</p>
+              <i
+                class="fa-solid fa-xmark close-popup-btn cursor-pointer text-xl"
+              ></i>
+            </div>
+            <div class="first-name-input-wrapper flex flex-col gap-1">
+              <label class="text-text-primary px-1" for="user-first-name-input"
+                >First Name</label
+              >
+              <input
+                type="text"
+                autocomplete="off"
+                class="first-name-input custom-input"
+                id="user-first-name-input"
+              />
+              <p
+                class="first-name-error text-text-error hidden px-1 text-sm"
+              ></p>
+            </div>
+            <div class="last-name-input-wrapper flex flex-col gap-1">
+              <label
+                class="text-text-primary px-1"
+                for="student-last-name-input"
+                >Last Name</label
+              >
+              <input
+                type="text"
+                autocomplete="off"
+                class="last-name-input custom-input"
+                id="user-last-name-input"
+              />
+              <p
+                class="last-name-error text-text-error hidden px-1 text-sm"
+              ></p>
+            </div>
+            <button class="button-fill success-btn" type="button">Edit</button>
+          </div>
+        </div>
+        <!-- edit roll no popup -->
+        <div
+          class="edit-roll-no-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="popup bg-surface-2 relative flex w-full max-w-[18.75rem] flex-col gap-4 rounded-3xl p-6"
+          >
+            <div class="wrapper flex w-full items-center justify-between">
+              <p class="popup-title text-2xl font-semibold">Change roll no</p>
+              <i
+                class="fa-solid fa-xmark close-popup-btn cursor-pointer text-xl"
+              ></i>
+            </div>
+            <div class="roll-no-input-wrapper flex flex-col gap-1">
+              <label class="text-text-primary px-1" for="student-roll-no-input"
+                >Roll No</label
+              >
+              <input
+                type="number"
+                autocomplete="off"
+                class="roll-no-input custom-input"
+                id="student-roll-no-input"
+              />
+              <p class="roll-no-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <button class="button-fill success-btn" type="button">Edit</button>
+          </div>
+        </div>
+        <!-- edit email popup -->
+        <div
+          class="edit-email-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="popup bg-surface-2 relative flex w-full max-w-[18.75rem] flex-col gap-4 rounded-3xl p-6"
+          >
+            <div class="wrapper flex w-full items-center justify-between">
+              <p class="popup-title text-2xl font-semibold">Change email</p>
+              <i
+                class="fa-solid fa-xmark close-popup-btn cursor-pointer text-xl"
+              ></i>
+            </div>
+            <div class="email-input-wrapper flex flex-col gap-1">
+              <label class="text-text-primary px-1" for="student-email-input"
+                >Email</label
+              >
+              <input
+                type="email"
+                autocomplete="off"
+                class="email-input custom-input"
+                id="student-email-input"
+              />
+              <p class="email-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <button class="button-fill success-btn" type="button">Edit</button>
+          </div>
+        </div>
+        <!-- edit role popup -->
+        <div
+          class="edit-role-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="popup bg-surface-2 relative flex w-full max-w-[18.75rem] flex-col gap-4 rounded-3xl p-6"
+          >
+            <div class="wrapper flex w-full items-center justify-between">
+              <p class="popup-title text-2xl font-semibold">Change role</p>
+              <i
+                class="fa-solid fa-xmark close-popup-btn cursor-pointer text-xl"
+              ></i>
+            </div>
+
+            <div class="role-input-wrapper flex flex-col gap-1">
+              <label class="text-text-primary px-1" for="student-role-input"
+                >Role</label
+              >
+              <select
+                name="role"
+                class="custom-select role-input"
+                id="student-role-input"
+              >
+                <option value="student">Student</option>
+                <option value="editor">Editor</option>
+              </select>
+              <p class="role-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <button class="button-fill success-btn" type="button">Edit</button>
+          </div>
+        </div>
+        <!-- division change popup -->
+        <div
+          class="edit-sem-div-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="popup bg-surface-2 relative flex w-full max-w-[18.75rem] flex-col gap-4 rounded-3xl p-6"
+          >
+            <div class="wrapper flex w-full items-center justify-between">
+              <p class="popup-title text-lg font-semibold">Change Division</p>
+              <i
+                class="fa-solid fa-xmark close-popup-btn cursor-pointer text-xl"
+              ></i>
+            </div>
+
+            <div class="division-input-wrapper flex flex-col gap-1">
+              <label class="text-text-primary px-1" for="student-division-input"
+                >Division</label
+              >
+              <select
+                name="division"
+                class="custom-select"
+                id="student-division-input"
+              >
+                <option value="E">Division E</option>
+              </select>
+              <p class="division-error text-text-error hidden px-1 text-sm"></p>
+            </div>
+            <button class="button-fill success-btn" type="button">Edit</button>
+          </div>
+        </div>
+        <!-- edit medal popup -->
+        <div
+          class="edit-medal-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="popup bg-surface-2 relative flex w-full max-w-[18.75rem] flex-col gap-4 rounded-3xl p-6"
+          >
+            <div class="wrapper flex w-full items-center justify-between">
+              <p class="popup-title text-2xl font-semibold">Edit medals</p>
+              <i
+                class="fa-solid fa-xmark close-popup-btn cursor-pointer text-xl"
+              ></i>
+            </div>
+            <div class="wrapper flex items-center gap-3">
+              <div class="gold-medal-input-wrapper flex flex-col gap-1">
+                <div class="wrapper flex items-center gap-1">
+                  <img
+                    src="https://ik.imagekit.io/yn9gz2n2g/others/gold.png?updatedAt=1751607550552"
+                    class="h-[25px] w-[1.125rem]"
+                    alt=""
+                  />
+                  <p class="">=</p>
+                  <input
+                    type="text"
+                    autocomplete="off"
+                    class="gold-medal-input custom-input"
+                    id="gold-medal-input"
+                  />
+                </div>
+              </div>
+              <div class="silver-medal-input-wrapper flex flex-col gap-1">
+                <div class="wrapper flex items-center gap-1">
+                  <img
+                    src="https://ik.imagekit.io/yn9gz2n2g/others/silver.png?updatedAt=1751607529476"
+                    class="h-[25px] w-[1.125rem]"
+                    alt=""
+                  />
+                  <p class="">=</p>
+                  <input
+                    type="text"
+                    autocomplete="off"
+                    class="silver-medal-input custom-input"
+                    id="silver-medal-input"
+                  />
+                </div>
+              </div>
+
+              <div class="bronze-medal-input-wrapper flex flex-col gap-1">
+                <div class="wrapper flex items-center gap-1">
+                  <img
+                    src="https://ik.imagekit.io/yn9gz2n2g/others/bronze.png?updatedAt=1751607503968"
+                    class="h-[25px] w-[1.125rem]"
+                    alt=""
+                  />
+                  <p class="">=</p>
+                  <input
+                    type="text"
+                    autocomplete="off"
+                    class="bronze-medal-input custom-input"
+                    id="bronze-medal-input"
+                  />
+                </div>
+              </div>
+            </div>
+            <p class="medal-error text-text-error hidden px-1 text-sm"></p>
+            <button class="button-fill success-btn" type="button">Edit</button>
+          </div>
+        </div>
+        <!--pick teacher popup -->
+        <div
+          class="pick-teacher-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="popup bg-surface-2 relative flex max-h-[80vh] w-full max-w-[25.0rem] flex-col gap-4 rounded-3xl p-6"
+          >
+            <div class="wrapper flex w-full items-center justify-between">
+              <p class="popup-title text-2xl font-semibold">Pick teacher</p>
+              <i class="fa-solid fa-xmark close-popup-btn text-xl"></i>
+            </div>
+            <div
+              class="card-container flex h-full flex-col gap-4 overflow-y-auto"
+            ></div>
+          </div>
+        </div>
+        <!-- add user code popup -->
+        <div
+          class="add-user-link-popup-wrapper absolute top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="add-user-link-popup bg-surface-2 flex w-full max-w-[24rem] flex-col gap-4 rounded-3xl p-6 lg:gap-5"
+          >
+            <div class="flex items-center justify-between">
+              <p class="text-text-primary popup-title text-2xl font-semibold">
+                Add Student
+              </p>
+              <div class="close-popup-btn cursor-pointer text-text-secondary hover:text-text-primary">
+                <i class="fa-solid fa-xmark text-xl"></i>
+              </div>
+            </div>
+
+            <!-- Direct Student Form -->
+            <form id="admin-add-student-form" class="flex flex-col gap-3">
+              <div class="flex gap-2">
+                <div class="flex flex-1 flex-col gap-1">
+                  <label for="admin-student-first-name" class="text-xs text-text-secondary">First Name</label>
+                  <input
+                    id="admin-student-first-name"
+                    type="text"
+                    placeholder="First Name"
+                    class="custom-input"
+                    required
+                  />
+                </div>
+                <div class="flex flex-1 flex-col gap-1">
+                  <label for="admin-student-last-name" class="text-xs text-text-secondary">Last Name</label>
+                  <input
+                    id="admin-student-last-name"
+                    type="text"
+                    placeholder="Last Name"
+                    class="custom-input"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <div class="flex w-24 flex-col gap-1">
+                  <label for="admin-student-roll" class="text-xs text-text-secondary">Roll No</label>
+                  <input
+                    id="admin-student-roll"
+                    type="number"
+                    placeholder="101"
+                    class="custom-input"
+                    required
+                  />
+                </div>
+                <div class="flex flex-1 flex-col gap-1">
+                  <label for="admin-student-email" class="text-xs text-text-secondary">Email</label>
+                  <input
+                    id="admin-student-email"
+                    type="email"
+                    placeholder="student@example.com"
+                    class="custom-input"
+                    required
+                  />
+                </div>
+              </div>
+              <div class="flex flex-col gap-1">
+                <label for="admin-student-password" class="text-xs text-text-secondary">Password</label>
+                <input
+                  id="admin-student-password"
+                  type="password"
+                  value="Student@123"
+                  class="custom-input"
+                  required
+                />
+              </div>
+              <span id="admin-add-student-error" class="text-xs text-text-error hidden"></span>
+              <div class="mt-1 flex justify-end gap-3">
+                <button type="submit" id="admin-add-student-submit-btn" class="button-fill !w-full">
+                  Create Student
+                </button>
+              </div>
+            </form>
+
+            <!-- Invite Code Option -->
+            <div class="border-t border-surface-3 pt-3 flex flex-col gap-2">
+              <p class="text-xs text-text-tertiary">Or copy class signup invite code:</p>
+              <p
+                class="bg-surface-3 text-text-link flex w-full cursor-pointer items-center justify-between rounded-xl px-4 py-2.5 text-sm"
+              >
+                <span id="add-user-link" class="block w-full truncate"></span>
+                <i class="fa-regular fa-copy ml-2 text-sm"></i>
+              </p>
+            </div>
+          </div>
+        </div>
+        <!-- add division popup -->
+        <div
+          class="add-division-popup-wrapper absolute top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="add-division-popup bg-surface-2 flex w-80 flex-col gap-4 rounded-3xl p-6 lg:gap-5"
+          >
+            <div class="flex items-center justify-between">
+              <p class="text-text-primary popup-title text-2xl font-semibold">
+                Add Division
+              </p>
+              <div class="close-popup-btn cursor-pointer text-text-secondary hover:text-text-primary">
+                <i class="fa-solid fa-xmark text-xl"></i>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label for="add-division-input" class="text-sm text-text-secondary">Division Name</label>
+              <input
+                id="add-division-input"
+                type="text"
+                maxlength="5"
+                placeholder="e.g. E or F"
+                class="custom-input uppercase"
+              />
+              <span class="add-division-error text-text-error text-sm hidden"></span>
+            </div>
+            <div class="btn-wrapper flex justify-end gap-3">
+              <button type="button" class="cancel-btn button-outline !w-fit px-4">Cancel</button>
+              <button type="button" class="confirm-btn button-fill !w-fit px-5">Add</button>
+            </div>
+          </div>
+        </div>
+        <!-- add subject popup -->
+        <div
+          class="add-subject-popup-wrapper absolute top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="add-subject-popup bg-surface-2 flex w-96 max-w-[90vw] flex-col gap-4 rounded-3xl p-6 lg:gap-5 shadow-2xl border border-surface-3"
+          >
+            <div class="flex items-center justify-between">
+              <p class="text-text-primary popup-title text-2xl font-semibold">
+                Add Subject
+              </p>
+              <div class="close-popup-btn cursor-pointer text-text-secondary hover:text-text-primary">
+                <i class="fa-solid fa-xmark text-xl"></i>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label for="admin-subject-name-input" class="text-sm text-text-secondary font-medium">Subject Name / Code</label>
+              <input
+                id="admin-subject-name-input"
+                type="text"
+                placeholder="e.g. Maths, DS, OS, Python"
+                class="custom-input"
+              />
+              <span class="add-subject-error text-text-error text-sm hidden"></span>
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-sm text-text-secondary font-medium">Icon Color / Theme</label>
+              <div class="subject-color-options flex items-center gap-2 flex-wrap pt-1">
+                <button type="button" data-color="indigo" class="color-pill active w-7 h-7 rounded-full bg-indigo-500 ring-2 ring-white ring-offset-2 ring-offset-surface-2 cursor-pointer"></button>
+                <button type="button" data-color="amber" class="color-pill w-7 h-7 rounded-full bg-amber-500 cursor-pointer"></button>
+                <button type="button" data-color="emerald" class="color-pill w-7 h-7 rounded-full bg-emerald-500 cursor-pointer"></button>
+                <button type="button" data-color="sky" class="color-pill w-7 h-7 rounded-full bg-sky-500 cursor-pointer"></button>
+                <button type="button" data-color="blue" class="color-pill w-7 h-7 rounded-full bg-blue-500 cursor-pointer"></button>
+                <button type="button" data-color="rose" class="color-pill w-7 h-7 rounded-full bg-rose-500 cursor-pointer"></button>
+                <button type="button" data-color="purple" class="color-pill w-7 h-7 rounded-full bg-purple-500 cursor-pointer"></button>
+                <button type="button" data-color="teal" class="color-pill w-7 h-7 rounded-full bg-teal-500 cursor-pointer"></button>
+              </div>
+            </div>
+            <div class="btn-wrapper flex justify-end gap-3 pt-2">
+              <button type="button" class="cancel-btn button-outline !w-fit px-4">Cancel</button>
+              <button type="button" class="confirm-btn button-fill !w-fit px-5">Add Subject</button>
+            </div>
+          </div>
+        </div>
+        <!-- individual user popup -->
+        <div
+          class="individual-user-popup-wrapper fixed top-0 left-0 z-30 flex hidden h-full w-full flex-col items-center justify-center gap-4 bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="popup bg-surface-2 relative flex max-h-[90vh] max-w-96 flex-col gap-4 rounded-3xl px-6 py-5 lg:gap-5"
+          >
+            <div class="close-popup-btn absolute top-4 right-4 cursor-pointer">
+              <i class="fa-solid fa-xmark"></i>
+            </div>
+
+            <div class="wrapper flex flex-col items-center gap-3 lg:gap-4">
+              <div
+                class="profile-pic-name-wrapper flex flex-col items-center gap-2 lg:gap-3"
+              >
+                <img src="" alt="" class="pfp h-[60px] w-[60px]" />
+                <p class="display-name text-center text-2xl font-semibold"></p>
+              </div>
+            </div>
+            <div
+              class="student-info-wrapper border-surface-3 flex h-fit flex-col items-start gap-4 overflow-y-auto rounded-2xl border-2 p-4 lg:gap-5"
+            >
+              <p class="first-name cursor-pointer">First Name: --</p>
+              <p class="last-name cursor-pointer">Last Name: --</p>
+              <p class="roll-no cursor-pointer">Roll No: --</p>
+              <p class="email cursor-pointer break-all">
+                Email: --
+              </p>
+              <p class="assigned-classes cursor-pointer break-all">
+                Assigned Class: 3A
+              </p>
+              <p class="role cursor-pointer">Role: Student</p>
+              <p class="div cursor-pointer">Division: E</p>
+            </div>
+            <div
+              class="delete-user-btn border-surface-3 cursor-pointer rounded-xl border p-4 text-center"
+            >
+              Delete User
+            </div>
+            <div
+              class="remove-user-btn hidden border-surface-3 cursor-pointer rounded-xl border p-4 text-center"
+            >
+              Remove teacher from class
+            </div>
+          </div>
+        </div>
+        <!-- division list -->
+        <div
+          class="division-list flex hidden h-full w-full flex-col gap-4 transition-all duration-200 lg:gap-5"
+        >
+          <div
+            class="div-card-container auto-grid-division-list flex w-full flex-row flex-wrap justify-start gap-4 lg:gap-5"
+          ></div>
+        </div>
+        <!-- class room -->
+        <div
+          class="class-room flex hidden h-full w-full flex-col gap-4 transition-all duration-200 lg:gap-5"
+        >
+          <!-- semester container -->
+          <div
+            class="semester-container-wrapper flex flex-col gap-2 w-full pb-1"
+          >
+            <div class="wrapper flex w-full items-center justify-between flex-wrap gap-2">
+              <div class="flex items-center gap-2">
+                <p class="title text-2xl font-semibold">Semester</p>
+                <span class="active-sem-badge bg-primary/20 text-primary border border-primary/30 px-3 py-0.5 rounded-full text-sm font-semibold">
+                  Sem 1
+                </span>
+              </div>
+              <div class="semester-pills flex items-center gap-1.5 flex-wrap"></div>
+            </div>
+          </div>
+          <!-- subject container -->
+          <div
+            class="admin-subject-container-wrapper flex flex-col items-center gap-2 lg:gap-3"
+          >
+            <div class="wrapper flex w-full items-center gap-2 lg:gap-3">
+              <p class="title text-2xl font-semibold">Subjects</p>
+              <div class="plus-icon add-subject-btn cursor-pointer">
+                <i class="fa-solid fa-plus cursor-pointer text-2xl"></i>
+              </div>
+            </div>
+            <div
+              class="admin-subject-card-container auto-grid-student-cards flex w-full flex-row flex-wrap justify-start gap-4 lg:gap-5"
+            ></div>
+          </div>
+          <!-- teacher container -->
+          <div
+            class="teacher-card-container-wrapper flex flex-col items-center gap-2 lg:gap-3"
+          >
+            <div class="wrapper flex w-full items-center gap-2 lg:gap-3">
+              <p class="title text-2xl font-semibold">Teachers</p>
+              <div class="plus-icon add-teacher-btn cursor-pointer">
+                <i class="fa-solid fa-plus cursor-pointer text-2xl"></i>
+              </div>
+            </div>
+            <div
+              class="teacher-card-container auto-grid-student-cards flex w-full flex-row flex-wrap justify-start gap-4 lg:gap-5"
+            ></div>
+          </div>
+          <!-- student container -->
+          <div
+            class="student-card-container-wrapper flex flex-col items-center gap-2 lg:gap-3"
+          >
+            <div class="wrapper flex w-full items-center gap-2 lg:gap-3">
+              <p class="main-title text-2xl font-semibold">Students</p>
+              <div class="plus-icon add-student-btn cursor-pointer">
+                <i class="fa-solid fa-plus cursor-pointer text-2xl"></i>
+              </div>
+            </div>
+
+            <div
+              class="student-card-container auto-grid-student-cards flex w-full flex-row flex-wrap justify-start gap-4 lg:gap-5"
+            ></div>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script src="src/scripts/admin.js" type="module"></script>
+    <script src="src/scripts/notification.js" type="module"></script>
+    <script src="src/scripts/signup.js" type="module"></script>
+    <script src="src/scripts/dashboard.js" type="module"></script>
+    <script src="src/scripts/subject.js" type="module"></script>
+    <script src="src/scripts/login.js" type="module"></script>
+    <script src="src/scripts/navigation.js" type="module"></script>
+    <script src="src/scripts/avatars.js" type="module"></script>
+    <script src="src/scripts/theme.js" type="module"></script>
+    <script src="src/scripts/personalFolder.js" type="module"></script>
+    <script src="src/scripts/index.js" type="module"></script>
+    <script src="src/scripts/pwa.js" type="module"></script>
+  </body>
+</html>

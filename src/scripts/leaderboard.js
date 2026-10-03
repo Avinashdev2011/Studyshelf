@@ -1,0 +1,2 @@
+// Leaderboard section removed
+export {};

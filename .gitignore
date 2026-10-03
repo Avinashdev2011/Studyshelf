@@ -1,0 +1,24 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+# Local environment & secrets
+.env
+.env.*
+service-account.json
+*/service-account.json
+drive-backend/.env
+drive-backend/uploads/
+drive-backend/node_modules/
+
+# Reference folder
+Lesp-Resources-main/
