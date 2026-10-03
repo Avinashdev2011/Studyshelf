@@ -615,7 +615,8 @@ body.is-admin .admin-section.hidden,
 }
 
 body.is-admin nav.side-bar,
-body.is-admin .side-bar {
+body.is-admin .side-bar,
+body.is-admin nav {
   display: none !important;
   opacity: 0 !important;
   pointer-events: none !important;

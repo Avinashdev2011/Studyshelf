@@ -224,7 +224,11 @@ export async function initClass() {
     userPfp.forEach((pfp) => {
       pfp.src = localUserData.userData.pfpLink;
     });
-    document.body.classList.remove("is-admin");
+    if (localUserData.userData?.role !== "admin" && appState.role !== "admin") {
+      document.body.classList.remove("is-admin");
+    } else {
+      document.body.classList.add("is-admin");
+    }
     const [Semester, Division] = localUserData.userData.class.split("");
     await initAppState(localUserData.userData, Semester, Division);
     await fadeInEffect(lottieLoadingScreen);
@@ -352,15 +356,14 @@ export async function hideSections(
   const isVisitingClassOrContent =
     isSubjectPage || isDashboard || isPersonalFolder || isPyq || localUserData.isVisitingClass;
 
-  const isAdmin =
-    (localUserData.userData?.role === "admin" ||
-      appState.role === "admin" ||
-      adminAppState.userData?.role === "admin" ||
-      document.body.classList.contains("is-admin") ||
-      Boolean(urlParams.get("div"))) &&
-    !isVisitingClassOrContent;
+  const isUserAdmin =
+    localUserData.userData?.role === "admin" ||
+    appState.role === "admin" ||
+    adminAppState.userData?.role === "admin" ||
+    document.body.classList.contains("is-admin") ||
+    Boolean(urlParams.get("div"));
 
-  if (isAdmin) {
+  if (isUserAdmin) {
     showSidebar = false;
     showHeader = true;
     showHeaderTitle = true;
@@ -394,7 +397,7 @@ export async function hideSections(
   }
 
   // Sidebar visibility
-  if (!showSidebar) {
+  if (!showSidebar || isUserAdmin) {
     document.querySelector("main").classList.remove("lg:ml-[4.375rem]");
     await hideElement(sideBar);
   } else {
