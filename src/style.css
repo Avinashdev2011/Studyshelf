@@ -592,6 +592,16 @@ body.is-admin .admin-btn-wrapper {
   display: flex !important;
 }
 
+body.is-admin .admin-section {
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  padding-top: 0.5rem;
+}
+
 body.is-admin nav.side-bar,
 body.is-admin .side-bar {
   display: none !important;

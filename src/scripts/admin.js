@@ -35,13 +35,16 @@ import {
   initAppState,
 } from "./appstate";
 import { unsubscribeFCM } from "./notification.js";
-import { headerIcon, headerTitle } from "./navigation";
+import { header, headerIcon, headerTitle } from "./navigation";
 import { showErrorSection } from "./error.js";
 import { BACKEND_URL } from "./driveApi.js";
 const adminSection = document.querySelector(".admin-section");
 let activeUserId = null;
 let activeUserObj = null;
 const DOM = {
+  header: document.querySelector("header"),
+  headerIcon: document.querySelector(".header-icon"),
+  headerTitle: document.querySelector(".header-title"),
   adminSection: document.querySelector(".admin-section"),
   divisionList: document.querySelector(".division-list"),
   divCardContainer: document.querySelector(".div-card-container"),
@@ -316,16 +319,23 @@ export async function initAdminRouting(userData) {
 //division section (primary Admin Dashboard view)
 async function showDivisionList() {
   await hideAdminDivisions();
-  showElement(header);
-  showElement(headerIcon);
-  showElement(headerTitle);
-  headerIcon.innerHTML = `<i class="fa-solid fa-shapes text-xl text-text-primary"></i>`;
-  headerIcon.classList.remove("bg-primary");
-  headerTitle.textContent = "Divisions";
-  headerTitle.className = "header-title font-semibold text-2xl";
-  headerTitle.onclick = null;
-  headerTitle.removeAttribute("title");
-  headerTitle.classList.remove("hidden");
+  const hdr = DOM.header || document.querySelector("header");
+  const hdrIcon = DOM.headerIcon || document.querySelector(".header-icon");
+  const hdrTitle = DOM.headerTitle || document.querySelector(".header-title");
+  if (hdr) showElement(hdr);
+  if (hdrIcon) {
+    showElement(hdrIcon);
+    hdrIcon.innerHTML = `<i class="fa-solid fa-shapes text-xl text-text-primary"></i>`;
+    hdrIcon.classList.remove("bg-primary");
+  }
+  if (hdrTitle) {
+    showElement(hdrTitle);
+    hdrTitle.textContent = "Divisions";
+    hdrTitle.className = "header-title font-semibold text-2xl";
+    hdrTitle.onclick = null;
+    hdrTitle.removeAttribute("title");
+    hdrTitle.classList.remove("hidden");
+  }
   DOM.divCardContainer.innerHTML = "";
 
   const divisions =
@@ -391,6 +401,8 @@ async function showDivisionList() {
   });
   DOM.divCardContainer.appendChild(addCard);
 
+  const adminSec = DOM.adminSection || document.querySelector(".admin-section");
+  if (adminSec) showElement(adminSec);
   showElement(DOM.divisionList);
   hideSectionLoader(200);
 }
@@ -403,16 +415,23 @@ async function showClassRoom() {
   await showSectionLoader("Loading...", false);
   try {
     await hideAdminDivisions();
-    showElement(header);
-    showElement(headerIcon);
-    showElement(headerTitle);
+    const hdr = DOM.header || document.querySelector("header");
+    const hdrIcon = DOM.headerIcon || document.querySelector(".header-icon");
+    const hdrTitle = DOM.headerTitle || document.querySelector(".header-title");
+    if (hdr) showElement(hdr);
+    if (hdrIcon) {
+      showElement(hdrIcon);
+      hdrIcon.innerHTML = `<i class="fa-solid fa-chalkboard-user text-xl text-text-primary"></i>`;
+      hdrIcon.classList.remove("bg-primary");
+    }
+    if (hdrTitle) {
+      showElement(hdrTitle);
+      hdrTitle.textContent = `Div - ${adminAppState.activeDiv}`;
+      hdrTitle.className = "header-title font-semibold text-2xl cursor-pointer hover:underline";
+      hdrTitle.title = "Click to return to divisions";
+      hdrTitle.onclick = () => showDivisionList();
+    }
     showElement(DOM.visitClassRoomBtn);
-    headerIcon.innerHTML = `<i class="fa-solid fa-chalkboard-user text-xl text-text-primary"></i>`;
-    headerIcon.classList.remove("bg-primary");
-    headerTitle.textContent = `Div - ${adminAppState.activeDiv}`;
-    headerTitle.className = "header-title font-semibold text-2xl cursor-pointer hover:underline";
-    headerTitle.title = "Click to return to divisions";
-    headerTitle.onclick = () => showDivisionList();
 
     // Back to Divisions button at top of class room
     let backToDivsBtn = DOM.classRoom.querySelector(".back-to-divs-btn");
@@ -463,6 +482,8 @@ async function showClassRoom() {
     renderIndividualStudentCard();
     renderIndividualTeacherCard();
     renderTeacherCardInPopup();
+    const adminSec = DOM.adminSection || document.querySelector(".admin-section");
+    if (adminSec) showElement(adminSec);
     showElement(DOM.classRoom);
   } catch (err) {
     console.error("Error in showClassRoom:", err);
