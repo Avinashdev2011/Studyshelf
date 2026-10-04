@@ -66,6 +66,11 @@ const DOM = {
       ".dashboard-section .upcoming-submissions .card-container",
     ),
   },
+  timeTableContainer: document.querySelector(".dashboard-section .time-table"),
+  pyqContainer: document.querySelector(".dashboard-section .dashboard-PYQ"),
+  diffSectionContainer: document.querySelector(
+    ".dashboard-section .dashboard-diff-section-container",
+  ),
   sendNotification: {
     popup: document.querySelector(
       ".dashboard-section .send-notification-popup-wrapper",
@@ -372,12 +377,24 @@ export async function loadDashboard() {
     initUserInfo();
     if (appState.userData.role === "teacher")
       showElement(DOM.menuPopup.switchClassBtn);
-    else if (appState.userData.role === "admin")
+    else if (appState.userData.role === "admin") {
       showElement(DOM.menuPopup.adminPanelBtn);
-    else {
+    } else {
       hideElement(DOM.menuPopup.adminPanelBtn);
       hideElement(DOM.menuPopup.switchClassBtn);
     }
+    
+    if (appState.userData?.role === "admin") {
+      if (DOM.upcomingSubmissions?.container) hideElement(DOM.upcomingSubmissions.container);
+      if (DOM.timeTableContainer) hideElement(DOM.timeTableContainer);
+      if (DOM.pyqContainer) hideElement(DOM.pyqContainer);
+      if (DOM.diffSectionContainer) hideElement(DOM.diffSectionContainer);
+    } else {
+      if (DOM.pyqContainer) showElement(DOM.pyqContainer);
+      if (DOM.timeTableContainer) showElement(DOM.timeTableContainer);
+      if (DOM.diffSectionContainer) showElement(DOM.diffSectionContainer);
+    }
+
     currentBatchIndex = -1;
     switchBatch();
     currentBatchIndex = 0;
@@ -400,6 +417,14 @@ export async function showDashboard() {
   headerIcon.appendChild(pfpElement);
   if (window.innerWidth > 1024) hideElement(headerIcon);
   else showElement(headerIcon);
+
+  if (appState.userData?.role === "admin") {
+    if (DOM.upcomingSubmissions?.container) hideElement(DOM.upcomingSubmissions.container);
+    if (DOM.timeTableContainer) hideElement(DOM.timeTableContainer);
+    if (DOM.pyqContainer) hideElement(DOM.pyqContainer);
+    if (DOM.diffSectionContainer) hideElement(DOM.diffSectionContainer);
+  }
+
   await fadeInEffect(DOM.dashboardSection);
   timeTablePopupSwiper.update();
   DOM.timeTableSwiper.swiper.update();
@@ -418,6 +443,10 @@ export async function unloadDashboard() {
 }
 export function renderUpcomingSubmissions() {
   DOM.upcomingSubmissions.cardContainer.innerHTML = "";
+  if (appState?.userData?.role === "admin") {
+    hideElement(DOM.upcomingSubmissions.container);
+    return;
+  }
   const upcomingSubmissions = appState?.divisionData?.upcomingSubmissionData;
   if (!upcomingSubmissions || Object.keys(upcomingSubmissions).length === 0) {
     hideElement(DOM.upcomingSubmissions.container);
@@ -930,43 +959,43 @@ async function deleteNotice(key, attachmentId, scope) {
     "The notice will be deleted permenantly",
   );
   if (!confirmed) return;
-  showSectionLoader("Deleting notice...");
-  if (attachmentId && attachmentId !== "custom-link") {
-    showSectionLoader("Deleting attachment...");
-    const deleted = await deleteDriveFile(attachmentId);
-    if (!deleted) {
-      showErrorSection();
-      return;
-    }
+  try {
     showSectionLoader("Deleting notice...");
+    if (attachmentId && attachmentId !== "custom-link") {
+      showSectionLoader("Deleting attachment...");
+      await deleteDriveFile(attachmentId);
+      showSectionLoader("Deleting notice...");
+    }
+    let isSubNotice = false;
+    if (scope === "department") {
+      await deleteData(`globalData/noticeList/${key}`);
+    } else if (scope === "semester") {
+      await deleteData(
+        `semesterList/${appState.activeSem}/semesterGlobalData/noticeList/${key}`,
+      );
+    } else if (scope === "division") {
+      await deleteData(
+        `semesterList/${appState.activeSem}/divisionList/${appState.activeDiv}/noticeData/divisionNoticeList/${key}`,
+      );
+    } else {
+      await deleteData(
+        `semesterList/${appState.activeSem}/divisionList/${appState.activeDiv}/noticeData/subjectNoticeData/${scope}/${key}`,
+      );
+      isSubNotice = true;
+    }
+    await deleteData(
+      `semesters/${appState.activeSem}/divisions/${appState.activeDiv}/subjects/notice/${appState.activeSubject}/${key}`,
+    );
+    await showSectionLoader("Syncing data...");
+    await syncDbData();
+    if (isSubNotice) await subjectRenderNoticeSlider();
+    await loadDashboard();
+    showDashboard();
+  } catch (err) {
+    console.error("Error deleting notice:", err);
+  } finally {
+    await hideSectionLoader();
   }
-  let isSubNotice = false;
-  if (scope === "department") {
-    await deleteData(`globalData/noticeList/${key}`);
-  } else if (scope === "semester") {
-    await deleteData(
-      `semesterList/${appState.activeSem}/semesterGlobalData/noticeList/${key}`,
-    );
-  } else if (scope === "division") {
-    await deleteData(
-      `semesterList/${appState.activeSem}/divisionList/${appState.activeDiv}/noticeData/divisionNoticeList/${key}`,
-    );
-  } else {
-    await deleteData(
-      `semesterList/${appState.activeSem}/divisionList/${appState.activeDiv}/noticeData/subjectNoticeData/${scope}/${key}`,
-    );
-    isSubNotice = true;
-  }
-  await deleteData(
-    `semesters/${appState.activeSem}/divisions/${appState.activeDiv}/subjects/notice/${appState.activeSubject}/${key}`,
-  );
-  await showSectionLoader("Syncing data...");
-  await syncDbData();
-  if (isSubNotice) await subjectRenderNoticeSlider();
-
-  await hideSectionLoader();
-  await loadDashboard();
-  showDashboard();
 }
 function resetNoticePopup() {
   DOM.noticePopup.inputs.title.value = "";

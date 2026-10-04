@@ -91,11 +91,37 @@ function getAuthClient() {
 }
 
 // Drive Status Check
-app.get("/drive-status", (req, res) => {
+app.get("/drive-status", async (req, res) => {
   const gasUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
   const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID || "13eP5SejpSKbD6z3bqGXB0rZYpdpm9JMv";
+  
+  let gasStatus = "not_configured";
+  let gasMessage = "No Apps Script URL configured";
+
+  if (gasUrl && gasUrl.trim().startsWith("http")) {
+    try {
+      const response = await fetch(gasUrl.trim(), { method: "GET", redirect: "follow" });
+      const contentType = response.headers.get("content-type") || "";
+      if (response.ok && contentType.includes("application/json")) {
+        gasStatus = "active";
+        gasMessage = "Google Apps Script Web App is online and accessible.";
+      } else if (response.status === 403 || contentType.includes("text/html")) {
+        gasStatus = "forbidden";
+        gasMessage = `Apps Script returned HTTP ${response.status}. Ensure deployment permission is set to "Who has access: Anyone".`;
+      } else {
+        gasStatus = "error";
+        gasMessage = `Apps Script returned HTTP status ${response.status}`;
+      }
+    } catch (err) {
+      gasStatus = "unreachable";
+      gasMessage = err.message;
+    }
+  }
+
   res.json({
-    connected: Boolean(gasUrl && gasUrl.trim().startsWith("http")),
+    connected: gasStatus === "active",
+    status: gasStatus,
+    message: gasMessage,
     folderId,
     gasUrlConfigured: Boolean(gasUrl),
     mode: gasUrl ? "google_drive" : "local_storage"
@@ -137,11 +163,12 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
     const gasUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
     const folderId = process.env.GOOGLE_DRIVE_FOLDER_ID || "13eP5SejpSKbD6z3bqGXB0rZYpdpm9JMv";
+    const subPath = req.body.path || req.body.folderPath || "";
 
     // 1. If Google Apps Script Web App URL is configured, upload directly to Google Drive
     if (gasUrl && gasUrl.trim().startsWith("http")) {
       try {
-        console.log(`[Upload] Sending file to Google Drive (${req.file.originalname}, ${req.file.size} bytes)...`);
+        console.log(`[Upload] Sending file to Google Drive via Apps Script (${req.file.originalname}, subPath: "${subPath}")...`);
         
         const fileBase64 = readFileSync(req.file.path, { encoding: "base64" });
         const payload = {
@@ -149,7 +176,8 @@ app.post("/upload", upload.single("file"), async (req, res) => {
           fileName: req.file.originalname,
           mimeType: req.file.mimetype || "application/octet-stream",
           base64: fileBase64,
-          folderId: folderId
+          folderId: folderId,
+          path: subPath
         };
 
         const response = await fetch(gasUrl.trim(), {
@@ -159,13 +187,22 @@ app.post("/upload", upload.single("file"), async (req, res) => {
           redirect: "follow",
         });
 
-        const result = await response.json();
-        console.log("[Upload] Google Drive response:", result);
-
+        const contentType = response.headers.get("content-type") || "";
+        
         // Remove temp disk file
         if (existsSync(req.file.path)) {
           try { unlinkSync(req.file.path); } catch (e) {}
         }
+
+        if (contentType.includes("text/html") || !response.ok) {
+          if (response.status === 403) {
+            throw new Error(`Google Apps Script permissions error (403 Forbidden). In script.google.com, set "Who has access" to "Anyone".`);
+          }
+          throw new Error(`Google Apps Script returned HTTP ${response.status} (${contentType})`);
+        }
+
+        const result = await response.json();
+        console.log("[Upload] Google Drive response:", result);
 
         if (result && result.success && result.webViewLink) {
           return res.json({
@@ -174,22 +211,31 @@ app.post("/upload", upload.single("file"), async (req, res) => {
             fileId: result.fileId,
             name: result.name || req.file.originalname,
             size: result.size || req.file.size,
-            storage: "google_drive"
+            storage: "google_drive",
+            folderId: result.folderId,
+            folderName: result.folderName
           });
         } else {
-          console.warn("[Upload] Apps Script returned error, falling back to local:", result);
+          throw new Error(result?.error || "Google Apps Script returned failure.");
         }
       } catch (gasErr) {
         console.error("[Upload] Error uploading via Apps Script:", gasErr.message);
+        if (existsSync(req.file.path)) {
+          try { unlinkSync(req.file.path); } catch (e) {}
+        }
+        return res.status(500).json({
+          success: false,
+          error: `Google Drive upload failed: ${gasErr.message}`
+        });
       }
     }
 
-    // 2. Fallback to local server storage
+    // 2. Fallback to local server storage if gasUrl is not configured
     const host = req.get("host") || `localhost:${PORT}`;
     const protocol = req.protocol || "http";
     const webViewLink = `${protocol}://${host}/uploads/${req.file.filename}`;
 
-    console.log(`[Upload] File saved to backend storage: ${req.file.originalname} -> ${req.file.filename}`);
+    console.log(`[Upload] File saved to local backend storage: ${req.file.originalname} -> ${req.file.filename}`);
 
     res.json({
       success: true,
@@ -222,15 +268,21 @@ app.get("/get-token", async (req, res) => {
 // Delete Endpoint for Files
 app.post("/delete", async (req, res) => {
   try {
-    const { id } = req.body;
+    let { id } = req.body || {};
     if (!id) {
-      return res.status(400).json({ success: false, error: "File ID is required" });
+      return res.status(200).json({ success: true, message: "No file ID specified" });
+    }
+
+    // Extract file ID if URL was passed
+    if (typeof id === "string" && (id.includes("drive.google.com") || id.includes("http"))) {
+      const match = id.match(/\/d\/([a-zA-Z0-9_-]+)/) || id.match(/id=([a-zA-Z0-9_-]+)/);
+      if (match) id = match[1];
     }
 
     // Check if it's a local file in uploads/
     const localFilePath = join(uploadsDir, id);
     if (existsSync(localFilePath)) {
-      unlinkSync(localFilePath);
+      try { unlinkSync(localFilePath); } catch (e) {}
       console.log(`[Delete] Local file removed: ${id}`);
       return res.json({ success: true, type: "local" });
     }
@@ -261,7 +313,7 @@ app.post("/delete", async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error("Error deleting file:", error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(200).json({ success: true, warning: error.message });
   }
 });
 

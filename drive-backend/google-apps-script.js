@@ -11,7 +11,7 @@
  * 7. Set:
  *    - Description: StudyShelf Drive Uploader
  *    - Execute as: Me (studyshelfofficial26@gmail.com)
- *    - Who has access: Anyone
+ *    - Who has access: Anyone  (CRITICAL: Must select "Anyone", NOT "Only myself")
  * 8. Click "Deploy"
  * 9. Click "Authorize access" -> choose your account -> Advanced -> "Go to Untitled project (unsafe)" -> Allow
  * 10. Copy the "Web app URL" (it looks like: https://script.google.com/macros/s/.../exec)
@@ -48,7 +48,28 @@ function doPost(e) {
     try {
       targetFolder = DriveApp.getFolderById(folderId);
     } catch (fErr) {
-      targetFolder = DriveApp.getRootFolder();
+      try {
+        targetFolder = DriveApp.getFolderById(TARGET_FOLDER_ID);
+      } catch (tErr) {
+        return createJsonResponse({ 
+          success: false, 
+          error: "Target Google Drive folder not found. Please check folder permissions and folderId." 
+        });
+      }
+    }
+
+    // Resolve subfolder path if provided (e.g. "subjects/maths/modules/mod1")
+    let finalFolder = targetFolder;
+    if (data.path && typeof data.path === "string") {
+      const parts = data.path.split("/").filter(Boolean);
+      for (const part of parts) {
+        const subFolders = finalFolder.getFoldersByName(part);
+        if (subFolders.hasNext()) {
+          finalFolder = subFolders.next();
+        } else {
+          finalFolder = finalFolder.createFolder(part);
+        }
+      }
     }
 
     const fileName = data.fileName || "uploaded_file";
@@ -56,7 +77,7 @@ function doPost(e) {
     const decodedBytes = Utilities.base64Decode(data.base64);
     const blob = Utilities.newBlob(decodedBytes, mimeType, fileName);
 
-    const file = targetFolder.createFile(blob);
+    const file = finalFolder.createFile(blob);
 
     // Make viewable to anyone with link
     try {
@@ -73,7 +94,9 @@ function doPost(e) {
       fileId: fileId,
       webViewLink: webViewLink,
       name: file.getName(),
-      size: file.getSize()
+      size: file.getSize(),
+      folderId: finalFolder.getId(),
+      folderName: finalFolder.getName()
     });
   } catch (error) {
     return createJsonResponse({ success: false, error: error.toString() });

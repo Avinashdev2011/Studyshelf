@@ -423,30 +423,31 @@ async function deleteNotice(key, attachmentId) {
     "The notice will be deleted permenantly",
   );
   if (!confirmed) return;
-  showSectionLoader("Deleting notice...");
-  if (attachmentId && attachmentId !== "custom-link") {
-    showSectionLoader("Deleting attachment...");
-    const deleted = await deleteDriveFile(attachmentId);
-    if (!deleted) {
-      showErrorSection();
-      return;
-    }
+  try {
     showSectionLoader("Deleting notice...");
+    if (attachmentId && attachmentId !== "custom-link") {
+      showSectionLoader("Deleting attachment...");
+      await deleteDriveFile(attachmentId);
+      showSectionLoader("Deleting notice...");
+    }
+    await deleteData(
+      `semesterList/${appState.activeSem}/divisionList/${appState.activeDiv}/noticeData/subjectNoticeData/${appState.activeSubject}/${key}`,
+    );
+    trackEditEvent(
+      appState.activeSem,
+      appState.activeDiv,
+      appState.activeSubject,
+      "Deleted notice",
+    );
+    await showSectionLoader("Syncing data...");
+    await syncDbData();
+    await dashboardRenderUpcomingSubmissions();
+    loadSubjectSection();
+  } catch (err) {
+    console.error("Error deleting notice:", err);
+  } finally {
+    await hideSectionLoader();
   }
-  await deleteData(
-    `semesterList/${appState.activeSem}/divisionList/${appState.activeDiv}/noticeData/subjectNoticeData/${appState.activeSubject}/${key}`,
-  );
-  trackEditEvent(
-    appState.activeSem,
-    appState.activeDiv,
-    appState.activeSubject,
-    "Deleted notice",
-  );
-  await showSectionLoader("Syncing data...");
-  await syncDbData();
-  await dashboardRenderUpcomingSubmissions();
-  await hideSectionLoader();
-  loadSubjectSection();
 }
 function resetAddNoticePopup() {
   DOM.noticePopup.inputs.title.value = "";
@@ -837,84 +838,81 @@ DOM.itemPopup.successBtn.addEventListener("click", async () => {
   if (isError) return;
   let attachmentURL = "";
   let attachmentId = "";
-  if (file) {
-    showSectionLoader("Uploading file...");
-    let uploaded = null;
-    try {
-      uploaded = await uploadDriveFile(
-        file,
-        `${appState.activeSem}/divisionData/division${appState.activeDiv}/subjectData/${appState.activeSubject}/${selectedCategoryId}`,
-      );
-    } catch (err) {
-      console.error("Upload error:", err);
-    }
-    if (!uploaded) {
-      hideSectionLoader();
-      return;
-    }
-    attachmentURL = uploaded.webViewLink;
-    attachmentId = uploaded.fileId;
-  } else {
-    attachmentURL = link;
-    if (link !== originalLink) {
-      attachmentId = "custom-link";
+  try {
+    if (file) {
+      showSectionLoader("Uploading file...");
+      let uploaded = null;
+      try {
+        uploaded = await uploadDriveFile(
+          file,
+          `subjects/${appState.activeSubject}/${selectedCategoryId}`,
+        );
+      } catch (err) {
+        console.error("Upload error:", err);
+      }
+      if (!uploaded) {
+        return;
+      }
+      attachmentURL = uploaded.webViewLink;
+      attachmentId = uploaded.fileId;
     } else {
-      attachmentId = originalAttachmentId;
+      attachmentURL = link;
+      if (link !== originalLink) {
+        attachmentId = "custom-link";
+      } else {
+        attachmentId = originalAttachmentId;
+      }
     }
-  }
-  if (isItemEditing) {
-    if (originalAttachmentId !== attachmentId) {
-      showSectionLoader("Deleting old file...");
-      await deleteDriveFile(originalAttachmentId);
-    }
-    showSectionLoader("Updating item...");
-    await updateData(
-      `semesterList/${appState.activeSem}/divisionList/${appState.activeDiv}/subjectList/${appState.activeSubject}/containerList/${selectedCategoryId}/itemList/${selectedItemId}`,
-      {
-        name: title,
-        link: attachmentURL,
-        attachmentId,
-      },
+    if (isItemEditing) {
+      if (originalAttachmentId !== attachmentId && originalAttachmentId && originalAttachmentId !== "custom-link") {
+        showSectionLoader("Deleting old file...");
+        try { await deleteDriveFile(originalAttachmentId); } catch (e) {}
+      }
+      showSectionLoader("Updating item...");
+      await updateData(
+        `semesterList/${appState.activeSem}/divisionList/${appState.activeDiv}/subjectList/${appState.activeSubject}/containerList/${selectedCategoryId}/itemList/${selectedItemId}`,
+        {
+          name: title,
+          link: attachmentURL,
+          attachmentId,
+        },
+      );
       trackEditEvent(
         appState.activeSem,
         appState.activeDiv,
         appState.activeSubject,
         "Updated item:" + title,
-      ),
-    );
-    trackEditEvent(
-      appState.activeSem,
-      appState.activeDiv,
-      appState.activeSubject,
-      "Updated item:" + title,
-    );
-  } else {
-    showSectionLoader("Adding item...");
-    await pushData(
-      `semesterList/${appState.activeSem}/divisionList/${appState.activeDiv}/subjectList/${appState.activeSubject}/containerList/${selectedCategoryId}/itemList`,
-      {
-        name: title,
-        link: attachmentURL,
-        attachmentId,
-        createdAt: Date.now(),
-        isVisible: true,
-      },
-    );
-    trackCreateEvent(
-      appState.activeSem,
-      appState.activeDiv,
-      appState.activeSubject,
-      "Added item:" + title,
-    );
+      );
+    } else {
+      showSectionLoader("Adding item...");
+      await pushData(
+        `semesterList/${appState.activeSem}/divisionList/${appState.activeDiv}/subjectList/${appState.activeSubject}/containerList/${selectedCategoryId}/itemList`,
+        {
+          name: title,
+          link: attachmentURL,
+          attachmentId,
+          createdAt: Date.now(),
+          isVisible: true,
+        },
+      );
+      trackCreateEvent(
+        appState.activeSem,
+        appState.activeDiv,
+        appState.activeSubject,
+        "Added item:" + title,
+      );
+    }
+    await showSectionLoader("Syncing data...");
+    await fadeOutEffect(DOM.itemPopup.popup);
+    await syncDbData();
+    resetAddItemPopup();
+    await loadSubjectSection();
+    sendNotification(appState.activeSubject, `${title} added`, "division");
+  } catch (err) {
+    console.error("Error in addItem handler:", err);
+  } finally {
+    hideSectionLoader();
   }
-  await showSectionLoader("Syncing data...");
-  await fadeOutEffect(DOM.itemPopup.popup);
-  await syncDbData();
-  resetAddItemPopup();
-  await loadSubjectSection();
-  sendNotification(appState.activeSubject, `${title} added`, "division");
-
-  hideSectionLoader();
 });
 DOM.itemPopup.editTools.unhideBtn.addEventListener("click", async () => {
   try {
@@ -991,34 +989,42 @@ DOM.itemPopup.editTools.deleteBtn.addEventListener("click", async () => {
     "Are you sure you want to delete this item?",
   );
   if (!confirm) return;
-  let name =
-    appState.subjectData[appState.activeSubject].containerList[
-      selectedCategoryId
-    ].itemList[selectedItemId].name;
-  if (
-    appState.subjectData[appState.activeSubject].containerList[
-      selectedCategoryId
-    ].itemList[selectedItemId].attachmentId !== "custom-link"
-  ) {
-    showSectionLoader("Deleting uploaded attachment...");
-    await deleteDriveFile(originalAttachmentId);
+  try {
+    const itemData =
+      appState.subjectData?.[appState.activeSubject]?.containerList?.[
+        selectedCategoryId
+      ]?.itemList?.[selectedItemId];
+    const name = itemData?.name || "item";
+    const attachmentId = itemData?.attachmentId || originalAttachmentId;
+
+    if (attachmentId && attachmentId !== "custom-link") {
+      showSectionLoader("Deleting uploaded attachment...");
+      try {
+        await deleteDriveFile(attachmentId);
+      } catch (e) {
+        console.warn("Could not delete attachment file:", e);
+      }
+    }
     showSectionLoader("Deleting item...");
+    await deleteData(
+      `semesterList/${appState.activeSem}/divisionList/${appState.activeDiv}/subjectList/${appState.activeSubject}/containerList/${selectedCategoryId}/itemList/${selectedItemId}`,
+    );
+    await showSectionLoader("Syncing data...");
+    await fadeOutEffect(DOM.itemPopup.popup);
+    trackDeleteEvent(
+      appState.activeSem,
+      appState.activeDiv,
+      appState.activeSubject,
+      "Deleted item:" + name,
+    );
+    await syncDbData();
+    resetAddItemPopup();
+    await loadSubjectSection();
+  } catch (err) {
+    console.error("Error deleting item:", err);
+  } finally {
+    hideSectionLoader();
   }
-  deleteData(
-    `semesterList/${appState.activeSem}/divisionList/${appState.activeDiv}/subjectList/${appState.activeSubject}/containerList/${selectedCategoryId}/itemList/${selectedItemId}`,
-  );
-  await showSectionLoader("Syncing data...");
-  await fadeOutEffect(DOM.itemPopup.popup);
-  trackDeleteEvent(
-    appState.activeSem,
-    appState.activeDiv,
-    appState.activeSubject,
-    "Deleted item:" + name,
-  );
-  await syncDbData();
-  resetAddItemPopup();
-  await loadSubjectSection();
-  hideSectionLoader();
 });
 function renderResources() {
   const rawCategory =
@@ -1356,6 +1362,10 @@ function editUpcomingSubmission(submissionId) {
   fadeInEffect(DOM.submissionPopup.popup);
 }
 async function renderUpcomingSubmissions() {
+  if (appState?.userData?.role === "admin") {
+    hideElement(DOM.upcomingSubmissions.container);
+    return;
+  }
   const submissionData =
     (appState.divisionData?.upcomingSubmissionData || {})[
       appState.activeSubject

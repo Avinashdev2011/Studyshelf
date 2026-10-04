@@ -475,96 +475,96 @@ DOM.itemPopup.successBtn.addEventListener("click", async () => {
   if (isError) return;
   let attachmentURL = "";
   let attachmentId = "";
-  if (file) {
-    showSectionLoader("Uploading file...");
-    let uploaded = await uploadDriveFile(
-      file,
-      `personalFolder/${appState.userId}/${selectedCategoryId}`,
-    );
-    if (!uploaded) {
-      hideSectionLoader();
-      return;
-    }
-    attachmentURL = uploaded.webViewLink;
-    attachmentId = uploaded.fileId;
-  } else {
-    attachmentURL = link;
-    if (link !== originalLink) {
-      attachmentId = "custom-link";
+  try {
+    if (file) {
+      showSectionLoader("Uploading file...");
+      let uploaded = await uploadDriveFile(
+        file,
+        `personalFolder/${appState.userId}/${selectedCategoryId}`,
+      );
+      if (!uploaded) {
+        return;
+      }
+      attachmentURL = uploaded.webViewLink;
+      attachmentId = uploaded.fileId;
     } else {
-      attachmentId = originalAttachmentId;
-    }
-  }
-  if (isItemEditing) {
-    if (originalAttachmentId !== attachmentId) {
-      showSectionLoader("Updating storage usage...");
-      const oldSize =
-        appState.personalFolder[selectedCategoryId].itemList[selectedItemId]
-          .size || 0;
-      const newSize = file ? file.size : 0;
-      await updateData(`userData/${appState.userId}/personalFolder/metaData`, {
-        sizeUsed:
-          (appState.personalFolder?.metaData?.sizeUsed || 0) -
-          oldSize +
-          newSize,
-      });
-      if (originalAttachmentId && originalAttachmentId !== "custom-link") {
-        await deleteDriveFile(originalAttachmentId);
+      attachmentURL = link;
+      if (link !== originalLink) {
+        attachmentId = "custom-link";
+      } else {
+        attachmentId = originalAttachmentId;
       }
     }
-    showSectionLoader("Updating item...");
-    await updateData(
-      `userData/${appState.userId}/personalFolder/${selectedCategoryId}/itemList/${selectedItemId}`,
-      {
-        name: title,
-        link: attachmentURL,
-        attachmentId,
-        size: file ? file.size : 0,
-      },
+    if (isItemEditing) {
+      if (originalAttachmentId !== attachmentId) {
+        showSectionLoader("Updating storage usage...");
+        const oldSize =
+          appState.personalFolder?.[selectedCategoryId]?.itemList?.[selectedItemId]
+            ?.size || 0;
+        const newSize = file ? file.size : 0;
+        await updateData(`userData/${appState.userId}/personalFolder/metaData`, {
+          sizeUsed: Math.max(
+            0,
+            (appState.personalFolder?.metaData?.sizeUsed || 0) -
+            oldSize +
+            newSize,
+          ),
+        });
+        if (originalAttachmentId && originalAttachmentId !== "custom-link") {
+          try { await deleteDriveFile(originalAttachmentId); } catch (e) {}
+        }
+      }
+      showSectionLoader("Updating item...");
+      await updateData(
+        `userData/${appState.userId}/personalFolder/${selectedCategoryId}/itemList/${selectedItemId}`,
+        {
+          name: title,
+          link: attachmentURL,
+          attachmentId,
+          size: file ? file.size : 0,
+        },
+      );
       trackEditEvent(
         appState.activeSem,
         appState.activeDiv,
         "Personal folder",
         "Updated item:" + title,
-      ),
-    );
-    trackEditEvent(
-      appState.activeSem,
-      appState.activeDiv,
-      "Personal folder",
-      "Updated item:" + title,
-    );
-  } else {
-    showSectionLoader("Adding item...");
-    await pushData(
-      `userData/${appState.userId}/personalFolder/${selectedCategoryId}/itemList`,
-      {
-        name: title,
-        link: attachmentURL,
-        attachmentId,
-        createdAt: Date.now(),
-        isVisible: true,
-        size: file ? file.size : 0,
-      },
-    );
-    await updateData(`userData/${appState.userId}/personalFolder/metaData`, {
-      sizeUsed:
-        (appState.personalFolder?.metaData?.sizeUsed || 0) +
-        (file ? file.size : 0),
-    });
-    trackCreateEvent(
-      appState.activeSem,
-      appState.activeDiv,
-      "Personal folder",
-      "Added item:" + title,
-    );
+      );
+    } else {
+      showSectionLoader("Adding item...");
+      await pushData(
+        `userData/${appState.userId}/personalFolder/${selectedCategoryId}/itemList`,
+        {
+          name: title,
+          link: attachmentURL,
+          attachmentId,
+          createdAt: Date.now(),
+          isVisible: true,
+          size: file ? file.size : 0,
+        },
+      );
+      await updateData(`userData/${appState.userId}/personalFolder/metaData`, {
+        sizeUsed:
+          (appState.personalFolder?.metaData?.sizeUsed || 0) +
+          (file ? file.size : 0),
+      });
+      trackCreateEvent(
+        appState.activeSem,
+        appState.activeDiv,
+        "Personal folder",
+        "Added item:" + title,
+      );
+    }
+    await showSectionLoader("Syncing data...");
+    await fadeOutEffect(DOM.itemPopup.popup);
+    await syncDbData();
+    resetAddItemPopup();
+    await loadPersonalFolderSection();
+  } catch (err) {
+    console.error("Error adding/updating item:", err);
+  } finally {
+    hideSectionLoader();
   }
-  await showSectionLoader("Syncing data...");
-  await fadeOutEffect(DOM.itemPopup.popup);
-  await syncDbData();
-  resetAddItemPopup();
-  await loadPersonalFolderSection();
-  hideSectionLoader();
 });
 DOM.itemPopup.editTools.unhideBtn.addEventListener("click", async () => {
   const title =
@@ -637,37 +637,46 @@ DOM.itemPopup.editTools.deleteBtn.addEventListener("click", async () => {
     "Are you sure you want to delete this item?",
   );
   if (!confirm) return;
-  let name =
-    appState.personalFolder[selectedCategoryId].itemList[selectedItemId].name;
-  if (
-    appState.personalFolder[selectedCategoryId].itemList[selectedItemId]
-      .attachmentId !== "custom-link"
-  ) {
-    showSectionLoader("Deleting uploaded attachment...");
-    await deleteDriveFile(originalAttachmentId);
+  try {
+    const itemData =
+      appState.personalFolder?.[selectedCategoryId]?.itemList?.[selectedItemId];
+    const name = itemData?.name || "item";
+    const attachmentId = itemData?.attachmentId || originalAttachmentId;
+
+    if (attachmentId && attachmentId !== "custom-link") {
+      showSectionLoader("Deleting uploaded attachment...");
+      try {
+        await deleteDriveFile(attachmentId);
+      } catch (e) {
+        console.warn("Could not delete attachment file:", e);
+      }
+    }
     showSectionLoader("Deleting item...");
+    await updateData(`userData/${appState.userId}/personalFolder/metaData`, {
+      sizeUsed: Math.max(
+        0,
+        (appState.personalFolder?.metaData?.sizeUsed || 0) - (itemData?.size || 0),
+      ),
+    });
+    await deleteData(
+      `userData/${appState.userId}/personalFolder/${selectedCategoryId}/itemList/${selectedItemId}`,
+    );
+    await showSectionLoader("Syncing data...");
+    await fadeOutEffect(DOM.itemPopup.popup);
+    trackDeleteEvent(
+      appState.activeSem,
+      appState.activeDiv,
+      "Personal folder",
+      "Deleted item:" + name,
+    );
+    await syncDbData();
+    resetAddItemPopup();
+    await loadPersonalFolderSection();
+  } catch (err) {
+    console.error("Error deleting personal folder item:", err);
+  } finally {
+    hideSectionLoader();
   }
-  await updateData(`userData/${appState.userId}/personalFolder/metaData`, {
-    sizeUsed:
-      (appState.personalFolder?.metaData?.sizeUsed || 0) -
-      (appState.personalFolder[selectedCategoryId].itemList[selectedItemId]
-        .size || 0),
-  });
-  await deleteData(
-    `userData/${appState.userId}/personalFolder/${selectedCategoryId}/itemList/${selectedItemId}`,
-  );
-  await showSectionLoader("Syncing data...");
-  await fadeOutEffect(DOM.itemPopup.popup);
-  trackDeleteEvent(
-    appState.activeSem,
-    appState.activeDiv,
-    "Personal folder",
-    "Deleted item:" + name,
-  );
-  await syncDbData();
-  resetAddItemPopup();
-  await loadPersonalFolderSection();
-  hideSectionLoader();
 });
 function renderResources() {
   const rawCategory = appState.personalFolder || {};

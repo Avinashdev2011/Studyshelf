@@ -498,7 +498,11 @@ export async function applyEditModeUI() {
     });
     editorTool.forEach(async (tool) => showElement(tool));
     editModeToggleButton.textContent = "Exit editing";
-    showElement(subjectSectionUpcomingSubmissions);
+    if (appState?.userData?.role !== "admin") {
+      showElement(subjectSectionUpcomingSubmissions);
+    } else {
+      hideElement(subjectSectionUpcomingSubmissions);
+    }
   } else {
     const submissions =
       (appState.divisionData?.upcomingSubmissionData || {})[
