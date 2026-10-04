@@ -795,7 +795,7 @@ function renderResources() {
           "card p-3.5 px-4 w-full bg-surface-2 rounded-2xl flex items-center justify-between gap-3 custom-hover";
       }
 
-      const { fileIcon, badgeBg, badgeLabel } = getFileTypeDetails(item);
+      const { fileIcon } = getFileTypeDetails(item);
       const displayName = item.name ? item.name.charAt(0).toUpperCase() + item.name.slice(1) : "";
 
       card.innerHTML = `
@@ -805,7 +805,6 @@ function renderResources() {
           </div>
           <span class="break-words break-all font-medium text-text-primary text-sm leading-snug">${displayName}</span>
         </div>
-        <span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full shrink-0 ${badgeBg}">${badgeLabel}</span>
       `;
       link.appendChild(card);
       cardContainer.appendChild(link);

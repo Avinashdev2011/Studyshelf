@@ -1166,7 +1166,7 @@ function renderResources() {
         link.classList.add("hidden");
       }
 
-      const { fileIcon, badgeBg, badgeLabel } = getFileTypeDetails(item);
+      const { fileIcon } = getFileTypeDetails(item);
 
       card.innerHTML = `
         <div class="flex items-center gap-3 min-w-0 flex-1">
@@ -1175,7 +1175,6 @@ function renderResources() {
           </div>
           <span class="break-words break-all font-medium text-text-primary text-sm leading-snug">${item.name}</span>
         </div>
-        <span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full shrink-0 ${badgeBg}">${badgeLabel}</span>
       `;
 
       link.appendChild(card);
