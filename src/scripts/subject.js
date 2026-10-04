@@ -1,5 +1,5 @@
 import { app, deleteData, pushData, updateData } from "./firebase.js";
-import { deleteDriveFile, uploadDriveFile } from "./driveApi.js";
+import { deleteDriveFile, uploadDriveFile, getFileTypeDetails } from "./driveApi.js";
 import { appState, syncDbData } from "./appstate.js";
 import {
   fadeInEffect,
@@ -800,7 +800,10 @@ DOM.itemPopup.inputs.file.addEventListener("change", () => {
       return;
     }
     hideElement(DOM.itemPopup.fileAttachment.icon);
-    DOM.itemPopup.fileAttachment.text.textContent = "1 file attached";
+    DOM.itemPopup.fileAttachment.text.textContent = file.name;
+    if (!DOM.itemPopup.inputs.title.value.trim()) {
+      DOM.itemPopup.inputs.title.value = file.name.replace(/\.[^/.]+$/, "");
+    }
   } else {
     showElement(DOM.itemPopup.fileAttachment.icon);
     DOM.itemPopup.fileAttachment.text.textContent = "Upload File";
@@ -838,6 +841,8 @@ DOM.itemPopup.successBtn.addEventListener("click", async () => {
   if (isError) return;
   let attachmentURL = "";
   let attachmentId = "";
+  let originalFileName = "";
+  let fileExtension = "";
   try {
     if (file) {
       showSectionLoader("Uploading file...");
@@ -855,6 +860,12 @@ DOM.itemPopup.successBtn.addEventListener("click", async () => {
       }
       attachmentURL = uploaded.webViewLink;
       attachmentId = uploaded.fileId;
+      originalFileName = uploaded.fileName || file.name || "";
+      fileExtension =
+        uploaded.fileType ||
+        (originalFileName.includes(".")
+          ? originalFileName.split(".").pop().toLowerCase()
+          : "");
     } else {
       attachmentURL = link;
       if (link !== originalLink) {
@@ -869,13 +880,18 @@ DOM.itemPopup.successBtn.addEventListener("click", async () => {
         try { await deleteDriveFile(originalAttachmentId); } catch (e) {}
       }
       showSectionLoader("Updating item...");
+      const updatePayload = {
+        name: title,
+        link: attachmentURL,
+        attachmentId,
+      };
+      if (file) {
+        updatePayload.fileName = originalFileName;
+        updatePayload.fileType = fileExtension;
+      }
       await updateData(
         `semesterList/${appState.activeSem}/divisionList/${appState.activeDiv}/subjectList/${appState.activeSubject}/containerList/${selectedCategoryId}/itemList/${selectedItemId}`,
-        {
-          name: title,
-          link: attachmentURL,
-          attachmentId,
-        },
+        updatePayload,
       );
       trackEditEvent(
         appState.activeSem,
@@ -885,15 +901,20 @@ DOM.itemPopup.successBtn.addEventListener("click", async () => {
       );
     } else {
       showSectionLoader("Adding item...");
+      const newItemPayload = {
+        name: title,
+        link: attachmentURL,
+        attachmentId,
+        createdAt: Date.now(),
+        isVisible: true,
+      };
+      if (file) {
+        newItemPayload.fileName = originalFileName;
+        newItemPayload.fileType = fileExtension;
+      }
       await pushData(
         `semesterList/${appState.activeSem}/divisionList/${appState.activeDiv}/subjectList/${appState.activeSubject}/containerList/${selectedCategoryId}/itemList`,
-        {
-          name: title,
-          link: attachmentURL,
-          attachmentId,
-          createdAt: Date.now(),
-          isVisible: true,
-        },
+        newItemPayload,
       );
       trackCreateEvent(
         appState.activeSem,
@@ -1145,44 +1166,7 @@ function renderResources() {
         link.classList.add("hidden");
       }
 
-      const lowerName = (item.name || "").toLowerCase();
-      const lowerLink = (item.link || "").toLowerCase();
-      let fileIcon = "fa-solid fa-file-lines text-primary";
-      let badgeBg = "bg-primary/10 text-primary border border-primary/20";
-      let badgeLabel = "DOC";
-
-      if (lowerName.endsWith(".pdf") || lowerLink.includes(".pdf")) {
-        fileIcon = "fa-solid fa-file-pdf text-red-500";
-        badgeBg = "bg-red-500/10 text-red-500 border border-red-500/20";
-        badgeLabel = "PDF";
-      } else if (
-        lowerName.endsWith(".ppt") ||
-        lowerName.endsWith(".pptx") ||
-        lowerLink.includes(".ppt")
-      ) {
-        fileIcon = "fa-solid fa-file-powerpoint text-orange-500";
-        badgeBg = "bg-orange-500/10 text-orange-500 border border-orange-500/20";
-        badgeLabel = "PPT";
-      } else if (
-        lowerName.endsWith(".doc") ||
-        lowerName.endsWith(".docx") ||
-        lowerLink.includes(".doc")
-      ) {
-        fileIcon = "fa-solid fa-file-word text-blue-500";
-        badgeBg = "bg-blue-500/10 text-blue-500 border border-blue-500/20";
-        badgeLabel = "DOC";
-      } else if (lowerName.endsWith(".xls") || lowerName.endsWith(".xlsx")) {
-        fileIcon = "fa-solid fa-file-excel text-emerald-500";
-        badgeBg = "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20";
-        badgeLabel = "XLS";
-      } else if (
-        item.attachmentId === "custom-link" ||
-        (!lowerName.includes(".") && lowerLink.startsWith("http"))
-      ) {
-        fileIcon = "fa-solid fa-link text-cyan-400";
-        badgeBg = "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20";
-        badgeLabel = "LINK";
-      }
+      const { fileIcon, badgeBg, badgeLabel } = getFileTypeDetails(item);
 
       card.innerHTML = `
         <div class="flex items-center gap-3 min-w-0 flex-1">
@@ -1191,6 +1175,7 @@ function renderResources() {
           </div>
           <span class="break-words break-all font-medium text-text-primary text-sm leading-snug">${item.name}</span>
         </div>
+        <span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full shrink-0 ${badgeBg}">${badgeLabel}</span>
       `;
 
       link.appendChild(card);

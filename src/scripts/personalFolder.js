@@ -1,5 +1,5 @@
 import { app, deleteData, pushData, updateData } from "./firebase.js";
-import { deleteDriveFile, uploadDriveFile } from "./driveApi.js";
+import { deleteDriveFile, uploadDriveFile, getFileTypeDetails } from "./driveApi.js";
 import { appState, syncDbData } from "./appstate.js";
 import {
   fadeInEffect,
@@ -437,7 +437,10 @@ DOM.itemPopup.inputs.file.addEventListener("change", () => {
       return;
     }
     hideElement(DOM.itemPopup.fileAttachment.icon);
-    DOM.itemPopup.fileAttachment.text.textContent = "1 file attached";
+    DOM.itemPopup.fileAttachment.text.textContent = file.name;
+    if (!DOM.itemPopup.inputs.title.value.trim()) {
+      DOM.itemPopup.inputs.title.value = file.name.replace(/\.[^/.]+$/, "");
+    }
   } else {
     showElement(DOM.itemPopup.fileAttachment.icon);
     DOM.itemPopup.fileAttachment.text.textContent = "Upload File";
@@ -475,6 +478,8 @@ DOM.itemPopup.successBtn.addEventListener("click", async () => {
   if (isError) return;
   let attachmentURL = "";
   let attachmentId = "";
+  let originalFileName = "";
+  let fileExtension = "";
   try {
     if (file) {
       showSectionLoader("Uploading file...");
@@ -487,6 +492,12 @@ DOM.itemPopup.successBtn.addEventListener("click", async () => {
       }
       attachmentURL = uploaded.webViewLink;
       attachmentId = uploaded.fileId;
+      originalFileName = uploaded.fileName || file.name || "";
+      fileExtension =
+        uploaded.fileType ||
+        (originalFileName.includes(".")
+          ? originalFileName.split(".").pop().toLowerCase()
+          : "");
     } else {
       attachmentURL = link;
       if (link !== originalLink) {
@@ -515,14 +526,19 @@ DOM.itemPopup.successBtn.addEventListener("click", async () => {
         }
       }
       showSectionLoader("Updating item...");
+      const updatePayload = {
+        name: title,
+        link: attachmentURL,
+        attachmentId,
+        size: file ? file.size : 0,
+      };
+      if (file) {
+        updatePayload.fileName = originalFileName;
+        updatePayload.fileType = fileExtension;
+      }
       await updateData(
         `userData/${appState.userId}/personalFolder/${selectedCategoryId}/itemList/${selectedItemId}`,
-        {
-          name: title,
-          link: attachmentURL,
-          attachmentId,
-          size: file ? file.size : 0,
-        },
+        updatePayload,
       );
       trackEditEvent(
         appState.activeSem,
@@ -532,16 +548,21 @@ DOM.itemPopup.successBtn.addEventListener("click", async () => {
       );
     } else {
       showSectionLoader("Adding item...");
+      const newItemPayload = {
+        name: title,
+        link: attachmentURL,
+        attachmentId,
+        createdAt: Date.now(),
+        isVisible: true,
+        size: file ? file.size : 0,
+      };
+      if (file) {
+        newItemPayload.fileName = originalFileName;
+        newItemPayload.fileType = fileExtension;
+      }
       await pushData(
         `userData/${appState.userId}/personalFolder/${selectedCategoryId}/itemList`,
-        {
-          name: title,
-          link: attachmentURL,
-          attachmentId,
-          createdAt: Date.now(),
-          isVisible: true,
-          size: file ? file.size : 0,
-        },
+        newItemPayload,
       );
       await updateData(`userData/${appState.userId}/personalFolder/metaData`, {
         sizeUsed:
@@ -767,13 +788,25 @@ function renderResources() {
       const card = document.createElement("div");
       if (!item.isVisible) {
         card.className =
-          "card p-4 w-full text-center  bg-surface-2 rounded-[1.25rem] editor-only-content-card opacity-50";
+          "card p-3.5 px-4 w-full bg-surface-2 rounded-2xl flex items-center justify-between gap-3 editor-only-content-card opacity-50";
         link.classList.add("hidden");
-      } else
+      } else {
         card.className =
-          "card p-4 w-full text-center bg-surface-2 rounded-[1.25rem] custom-hover";
+          "card p-3.5 px-4 w-full bg-surface-2 rounded-2xl flex items-center justify-between gap-3 custom-hover";
+      }
 
-      card.textContent = item.name.charAt(0).toUpperCase() + item.name.slice(1);
+      const { fileIcon, badgeBg, badgeLabel } = getFileTypeDetails(item);
+      const displayName = item.name ? item.name.charAt(0).toUpperCase() + item.name.slice(1) : "";
+
+      card.innerHTML = `
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <div class="w-8 h-8 rounded-lg bg-surface-1 shrink-0 flex items-center justify-center">
+            <i class="${fileIcon} text-lg"></i>
+          </div>
+          <span class="break-words break-all font-medium text-text-primary text-sm leading-snug">${displayName}</span>
+        </div>
+        <span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full shrink-0 ${badgeBg}">${badgeLabel}</span>
+      `;
       link.appendChild(card);
       cardContainer.appendChild(link);
 
