@@ -802,7 +802,7 @@ DOM.itemPopup.inputs.file.addEventListener("change", () => {
     hideElement(DOM.itemPopup.fileAttachment.icon);
     DOM.itemPopup.fileAttachment.text.textContent = file.name;
     if (!DOM.itemPopup.inputs.title.value.trim()) {
-      DOM.itemPopup.inputs.title.value = file.name.replace(/\.[^/.]+$/, "");
+      DOM.itemPopup.inputs.title.value = file.name.replace(/\.[^/.]+$/, "").slice(0, 16);
     }
   } else {
     showElement(DOM.itemPopup.fileAttachment.icon);
@@ -993,13 +993,13 @@ DOM.itemPopup.editTools.hideBtn.addEventListener("click", async () => {
   hideSectionLoader();
 });
 DOM.itemPopup.inputs.title.addEventListener("input", () => {
-  if (DOM.itemPopup.inputs.title.value.length == 13) {
+  if (DOM.itemPopup.inputs.title.value.length > 16) {
     DOM.itemPopup.inputs.title.value = DOM.itemPopup.inputs.title.value.slice(
       0,
-      12,
+      16,
     );
     DOM.itemPopup.errors.title.textContent =
-      "Max 12 characters reached (Use short words like Exp, Asign, etc)";
+      "Max 16 characters reached (Use short words like Exp, Asign, etc)";
     showElement(DOM.itemPopup.errors.title);
   } else {
     hideElement(DOM.itemPopup.errors.title);
@@ -1306,11 +1306,11 @@ DOM.submissionPopup.deleteBtn.addEventListener("click", async () => {
   hideSectionLoader();
 });
 DOM.submissionPopup.inputs.title.addEventListener("input", () => {
-  if (DOM.submissionPopup.inputs.title.value.length == 13) {
+  if (DOM.submissionPopup.inputs.title.value.length > 16) {
     DOM.submissionPopup.errors.title.textContent =
-      "Max 12 characters reached (Use short words like Exp, Asign, etc)";
+      "Max 16 characters reached (Use short words like Exp, Asign, etc)";
     DOM.submissionPopup.inputs.title.value =
-      DOM.submissionPopup.inputs.title.value.slice(0, 12);
+      DOM.submissionPopup.inputs.title.value.slice(0, 16);
     showElement(DOM.submissionPopup.errors.title);
   } else {
     hideElement(DOM.submissionPopup.errors.title);
