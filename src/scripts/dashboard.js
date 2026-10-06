@@ -13,7 +13,9 @@ import {
   applyEditModeUI,
   initRouting,
   showSelectClassPopup,
+  localUserData,
 } from "./index.js";
+import { showLoginSection } from "./login.js";
 import { initAdminRouting } from "./admin.js";
 import { deleteDriveFile, uploadDriveFile } from "./driveApi.js";
 import { header, headerIcon, headerTitle } from "./navigation.js";
@@ -1356,10 +1358,25 @@ DOM.menuPopup.editPfpBtn.addEventListener("click", async () => {
   await fadeInEffect(pfpSelectionPopup);
 });
 DOM.menuPopup.logoutBtn.addEventListener("click", async () => {
-  showSectionLoader("Logging out...");
+  showSectionLoader("Logging out...", false);
+  if (DOM.menuPopup?.popup) {
+    fadeOutEffect(DOM.menuPopup.popup);
+  }
   localStorage.removeItem("rememberMe");
-  unsubscribeFCM();
+  document.body.classList.remove("is-admin");
+  localUserData.userData = null;
+  localUserData.isVisitingClass = false;
+  appState.userData = null;
+  appState.role = null;
+  appState.isEditing = false;
+  try {
+    unsubscribeFCM();
+  } catch (e) {
+    console.warn("unsubscribeFCM error:", e);
+  }
   await signOutUser();
+  await hideSectionLoader();
+  await showLoginSection();
 });
 DOM.menuPopup.accountDetailsBtn.addEventListener("click", async () => {
   await fadeOutEffect(DOM.menuPopup.popup);

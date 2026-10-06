@@ -131,9 +131,10 @@ selectClassPopupCloseButton.addEventListener("click", async () => {
   await isOffline();
   await showSectionLoader("Loading...", false);
   await toggleFormState(false);
-  hideElement(loginSection);
   hideElement(selectClassPopup);
-  signOutUser();
+  await signOutUser();
+  await hideSectionLoader();
+  await showLoginSection();
 });
 export let isNewUser = { flag: false };
 export async function showSectionLoader(
@@ -206,6 +207,37 @@ document.addEventListener("DOMContentLoaded", async () => {
           hideSectionLoader();
           initClass();
         } else {
+          document.body.classList.remove("is-admin");
+          localUserData.userData = null;
+          localUserData.isVisitingClass = false;
+          if (adminAppState) {
+            adminAppState.userData = null;
+            adminAppState.userId = null;
+          }
+          if (appState) {
+            appState.userData = null;
+            appState.role = null;
+            appState.isEditing = false;
+          }
+
+          // Close all open popups/overlays
+          const popupsToHide = [
+            document.querySelector(".menu-popup-wrapper"),
+            document.querySelector(".account-details-popup-wrapper"),
+            document.querySelector(".pfp-selection-popup-wrapper"),
+            document.querySelector(".select-class-popup-wrapper"),
+            document.querySelector(".subject-selector-popup-wrapper"),
+            document.querySelector(".pick-teacher-popup-wrapper"),
+            document.querySelector(".add-user-link-popup-wrapper"),
+            document.querySelector(".individual-user-popup-wrapper"),
+            document.querySelector(".class-code-popup-wrapper"),
+            document.querySelector(".theme-popup-wrapper"),
+            document.querySelector(".lottie-loading-screen"),
+          ];
+          popupsToHide.forEach((p) => {
+            if (p) hideElement(p);
+          });
+
           await hideSectionLoader();
           await showLoginSection();
         }
@@ -256,6 +288,17 @@ export async function initClass() {
 }
 export async function initRouting() {
   const params = new URLSearchParams(window.location.search);
+  if (
+    !auth.currentUser ||
+    !localUserData.userData ||
+    window.location.search.includes("login")
+  ) {
+    document.body.classList.remove("is-admin");
+    history.replaceState({}, "", "/?login=''");
+    await hideSections(false, false, false, false);
+    showLoginSection();
+    return;
+  }
   const dashboard = params.get("dashboard");
   const activeSubject = params.get("subject");
   const pyq = params.get("pyq");
@@ -357,19 +400,20 @@ export async function hideSections(
     isSubjectPage || isDashboard || isPersonalFolder || isPyq || localUserData.isVisitingClass;
 
   const isUserAdmin =
-    localUserData.userData?.role === "admin" ||
-    appState.role === "admin" ||
-    adminAppState.userData?.role === "admin" ||
-    document.body.classList.contains("is-admin") ||
-    Boolean(urlParams.get("div"));
+    Boolean(
+      auth.currentUser &&
+      (localUserData.userData?.role === "admin" ||
+       appState.role === "admin" ||
+       adminAppState.userData?.role === "admin")
+    );
 
-  if (isUserAdmin) {
+  if (isUserAdmin && showHeader) {
     showSidebar = false;
     showHeader = true;
     showHeaderTitle = true;
     showHeaderIcon = true;
     document.body.classList.add("is-admin");
-  } else {
+  } else if (!isUserAdmin) {
     document.body.classList.remove("is-admin");
   }
 
@@ -397,7 +441,7 @@ export async function hideSections(
   }
 
   // Sidebar visibility
-  if (!showSidebar || isUserAdmin) {
+  if (!showSidebar || (isUserAdmin && showHeader)) {
     document.querySelector("main").classList.remove("lg:ml-[4.375rem]");
     await hideElement(sideBar);
   } else {
@@ -415,7 +459,14 @@ export async function hideSections(
 
   if (adminReturnBtn) hideElement(adminReturnBtn);
 
-  if (isVisitingClassOrContent) {
+  if (!showHeader) {
+    if (adminBtnWrapper) hideElement(adminBtnWrapper);
+    if (adminReturnBtn) hideElement(adminReturnBtn);
+    if (visitClassRoomBtn) hideElement(visitClassRoomBtn);
+    if (adminSection) hideElement(adminSection);
+    if (classRoom) hideElement(classRoom);
+    if (divisionList) hideElement(divisionList);
+  } else if (isVisitingClassOrContent) {
     if (adminSection) hideElement(adminSection);
     if (classRoom) hideElement(classRoom);
     if (divisionList) hideElement(divisionList);
@@ -433,13 +484,13 @@ export async function hideSections(
         showElement(adminReturnBtn);
       }
     }
-  } else if (isAdmin) {
+  } else if (isUserAdmin) {
     if (adminBtnWrapper) {
       adminBtnWrapper.classList.remove("hidden");
       showElement(adminBtnWrapper);
     }
   } else {
-    hideElement(adminBtnWrapper);
+    if (adminBtnWrapper) hideElement(adminBtnWrapper);
   }
 
   hideElement(subjectSelectorPopup);
@@ -525,8 +576,17 @@ export async function applyEditModeUI() {
   }
 }
 window.addEventListener("popstate", () => {
-  if (localUserData.userData === undefined) initRouting();
-  else if (
+  if (
+    !auth.currentUser ||
+    !localUserData.userData ||
+    window.location.search.includes("login")
+  ) {
+    document.body.classList.remove("is-admin");
+    history.replaceState({}, "", "/?login=''");
+    showLoginSection();
+    return;
+  }
+  if (
     localUserData.userData.role &&
     localUserData.userData.role === "admin" &&
     !localUserData.isVisitingClass

@@ -5,6 +5,7 @@ import {
   fadeOutEffect,
   fadeOutEffectOpacity,
   fadeInEffectOpacity,
+  hideElement,
 } from "./animation.js";
 import {
   signInWithEmailAndPassword,
@@ -105,11 +106,29 @@ forgotPasswordLink.addEventListener("click", async (e) => {
   showResetPasswordSection();
 });
 export async function showLoginSection() {
-  history.pushState({}, "", "/?login=''");
+  history.replaceState({}, "", "/?login=''");
+  document.body.classList.remove("is-admin");
   await hideSections(false, false, false, false);
-  await fadeInEffect(loginSection);
-  swiper.update();
-  swiper.autoplay.start();
+  const adminSec = document.querySelector(".admin-section");
+  if (adminSec) hideElement(adminSec);
+  const divList = document.querySelector(".division-list");
+  if (divList) hideElement(divList);
+  const classRoom = document.querySelector(".class-room");
+  if (classRoom) hideElement(classRoom);
+  const adminBtnWrapper = document.querySelector(".admin-btn-wrapper");
+  if (adminBtnWrapper) hideElement(adminBtnWrapper);
+  if (loginSection) {
+    loginSection.style.display = "";
+    loginSection.style.removeProperty("display");
+    await fadeInEffect(loginSection);
+  }
+  resetForm();
+  if (swiper && swiper.update) {
+    swiper.update();
+    if (swiper.autoplay && swiper.autoplay.start) {
+      swiper.autoplay.start();
+    }
+  }
 }
 export async function showResetPasswordSection() {
   history.pushState({}, "", "?resetPassword");

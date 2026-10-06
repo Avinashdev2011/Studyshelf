@@ -1,4 +1,5 @@
 import {
+  auth,
   get,
   ref,
   db,
@@ -38,6 +39,7 @@ import { unsubscribeFCM } from "./notification.js";
 import { header, headerIcon, headerTitle } from "./navigation";
 import { showErrorSection } from "./error.js";
 import { BACKEND_URL } from "./driveApi.js";
+import { showLoginSection } from "./login.js";
 const adminSection = document.querySelector(".admin-section");
 let activeUserId = null;
 let activeUserObj = null;
@@ -956,11 +958,22 @@ function encryptObj(obj) {
   return encoded;
 }
 
-DOM.logOutBtn.addEventListener("click", () => {
+DOM.logOutBtn.addEventListener("click", async () => {
+  showSectionLoader("Logging out...", false);
   document.body.classList.remove("is-admin");
   localStorage.removeItem("rememberMe");
-  unsubscribeFCM();
-  signOutUser();
+  localUserData.userData = null;
+  localUserData.isVisitingClass = false;
+  adminAppState.userData = null;
+  adminAppState.userId = null;
+  try {
+    unsubscribeFCM();
+  } catch (e) {
+    console.warn("unsubscribeFCM error:", e);
+  }
+  await signOutUser();
+  await hideSectionLoader();
+  await showLoginSection();
 });
 DOM.visitClassRoomBtn.addEventListener("click", async () => {
   fadeInEffect(lottieLoadingScreen);
@@ -1629,6 +1642,17 @@ DOM.addSubjectPopup.confirmBtn.addEventListener("click", async () => {
 });
 
 window.addEventListener("popstate", () => {
+  // If not authenticated or not admin, never run admin routing on popstate
+  if (
+    !auth.currentUser ||
+    localUserData.userData?.role !== "admin" ||
+    localUserData.isVisitingClass ||
+    window.location.search.includes("login") ||
+    window.location.search.includes("resetPassword")
+  ) {
+    return;
+  }
+
   const urlParams = new URLSearchParams(window.location.search);
   const subject = urlParams.get("subject");
   if (subject) return; // Handled by index.js routing

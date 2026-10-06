@@ -88,8 +88,14 @@ export function writeData(path, data) {
       return;
     });
 }
-export function signOutUser() {
-  trackUserLogout(auth.currentUser.email);
+export async function signOutUser() {
+  try {
+    if (auth.currentUser?.email) {
+      trackUserLogout(auth.currentUser.email);
+    }
+  } catch (err) {
+    console.warn("Error tracking logout:", err);
+  }
   return signOut(auth)
     .then(() => {
       resetForm();
