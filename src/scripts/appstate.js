@@ -145,3 +145,35 @@ export async function syncDbData() {
 export async function syncAdminData() {
   adminAppState.semesterData = await getWholeSemesterData();
 }
+export function getEBooksForClass(sem, div) {
+  return get(child(ref(db), `semesterList/${sem}/divisionList/${div}/eBooks`))
+    .then((snapshot) => (snapshot.exists() ? snapshot.val() : {}))
+    .catch(() => ({}));
+}
+export async function getFacultyForClass(sem, div) {
+  try {
+    const snapshot = await get(ref(db, "userData"));
+    if (!snapshot.exists()) return {};
+    const allUsers = snapshot.val();
+    const targetKey = `${sem}${div}`;
+    const faculty = {};
+    for (const [uid, user] of Object.entries(allUsers)) {
+      if (
+        user &&
+        user.role === "teacher" &&
+        user.assignedClasses &&
+        user.assignedClasses[targetKey]
+      ) {
+        faculty[uid] = user;
+      }
+    }
+    return faculty;
+  } catch {
+    return {};
+  }
+}
+export function getFaultyForClass(sem, div) {
+  return get(child(ref(db), `semesterList/${sem}/divisionList/${div}/faulty`))
+    .then((snapshot) => (snapshot.exists() ? snapshot.val() : {}))
+    .catch(() => ({}));
+}

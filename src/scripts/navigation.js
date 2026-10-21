@@ -58,6 +58,8 @@ const timetablePopup = document.querySelector(".time-table-popup-wrapper");
 export const personalFolderIcon = document.querySelector(
   ".personal-folder-icon",
 );
+export const libraryIcon = document.querySelector(".library-icon");
+export const facultyIcon = document.querySelector(".faculty-icon");
 dashboardIcon.addEventListener("click", (e) => {
   history.pushState({}, "", "/?dashboard=''");
   initRouting();
@@ -74,6 +76,14 @@ timeTableIcon.addEventListener("click", async () => {
 });
 personalFolderIcon.addEventListener("click", () => {
   history.pushState({}, "", '?personal-folder=""');
+  initRouting();
+});
+libraryIcon.addEventListener("click", () => {
+  history.pushState({}, "", '?library=""');
+  initRouting();
+});
+facultyIcon.addEventListener("click", () => {
+  history.pushState({}, "", '?faculty=""');
   initRouting();
 });
 export function loadSubjectSelectionList() {

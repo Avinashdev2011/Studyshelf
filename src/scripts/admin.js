@@ -12,6 +12,7 @@ import {
   writeData,
   deleteData,
 } from "./firebase.js";
+import { uploadDriveFile, deleteDriveFile, getLastUploadError, getFileTypeDetails } from "./driveApi.js";
 import {
   showConfirmationPopup,
   showSectionLoader,
@@ -64,7 +65,6 @@ const DOM = {
   personalFolderEditBtn: document.querySelector(
     ".personal-folder-edit-mode-toggle-btn",
   ),
-  visitClassRoomBtn: document.querySelector(".visit-class-room-btn"),
   adminBtnWrapper: document.querySelector(".admin-btn-wrapper"),
   addUserPopup: {
     popup: document.querySelector(".add-user-link-popup-wrapper"),
@@ -229,6 +229,23 @@ const DOM = {
     ),
     popup: document.querySelector(".edit-medal-popup-wrapper"),
   },
+  ebookPopup: {
+    popup: document.querySelector(".add-ebook-popup-wrapper"),
+    titleInput: document.querySelector("#ebook-title-input"),
+    authorInput: document.querySelector("#ebook-author-input"),
+    linkInput: document.querySelector("#ebook-link-input"),
+    fileInput: document.querySelector("#ebook-file-input"),
+    fileWrapper: document.querySelector(".ebook-file-input-wrapper"),
+    uploadIcon: document.querySelector(".ebook-upload-icon"),
+    uploadText: document.querySelector(".ebook-upload-text"),
+    submitBtn: document.querySelector(".ebook-submit-btn"),
+    titleError: document.querySelector(".ebook-title-error"),
+    linkError: document.querySelector(".ebook-link-error"),
+    fileError: document.querySelector(".ebook-file-error"),
+    closeBtns: document.querySelectorAll(".add-ebook-popup-wrapper .close-popup-btn"),
+  },
+  ebookCardContainer: document.querySelector(".admin-ebook-card-container"),
+  addEbookBtn: document.querySelector(".add-ebook-btn"),
 };
 
 export async function initAdminRouting(userData) {
@@ -238,6 +255,12 @@ export async function initAdminRouting(userData) {
   if (loginSec) {
     loginSec.classList.add("hidden");
     loginSec.style.display = "none";
+  }
+
+  // Hide sidebar in admin mode
+  const sideBar = document.querySelector(".side-bar");
+  if (sideBar) {
+    sideBar.classList.add("hidden");
   }
 
   showSectionLoader("Loading...", false);
@@ -268,7 +291,6 @@ export async function initAdminRouting(userData) {
     appState.isEditing = true;
     await hideAdminDivisions();
     hideElement(DOM.adminSection);
-    hideElement(DOM.visitClassRoomBtn);
     await initRouting();
     return;
   }
@@ -327,19 +349,21 @@ async function showDivisionList() {
   const hdr = DOM.header || document.querySelector("header");
   const hdrIcon = DOM.headerIcon || document.querySelector(".header-icon");
   const hdrTitle = DOM.headerTitle || document.querySelector(".header-title");
-  if (hdr) showElement(hdr);
+  if (hdr) {
+    hdr.classList.remove("hidden");
+    hdr.style.display = "";
+  }
   if (hdrIcon) {
-    showElement(hdrIcon);
+    hdrIcon.classList.remove("hidden");
     hdrIcon.innerHTML = `<i class="fa-solid fa-shapes text-xl text-text-primary"></i>`;
     hdrIcon.classList.remove("bg-primary");
   }
   if (hdrTitle) {
-    showElement(hdrTitle);
+    hdrTitle.classList.remove("hidden");
     hdrTitle.textContent = "Divisions";
     hdrTitle.className = "header-title font-semibold text-2xl";
     hdrTitle.onclick = null;
     hdrTitle.removeAttribute("title");
-    hdrTitle.classList.remove("hidden");
   }
   DOM.divCardContainer.innerHTML = "";
 
@@ -407,13 +431,126 @@ async function showDivisionList() {
   DOM.divCardContainer.appendChild(addCard);
 
   const adminSec = DOM.adminSection || document.querySelector(".admin-section");
-  if (adminSec) showElement(adminSec);
+  if (adminSec) {
+    showElement(adminSec);
+  }
   showElement(DOM.divisionList);
   hideSectionLoader(200);
 }
 async function unloadDivisionList() {
   await fadeOutEffect(DOM.divisionList);
   DOM.divCardContainer.innerHTML = "";
+}
+const EBOOK_COVERS = [
+  "from-violet-500 to-purple-700",
+  "from-blue-500 to-cyan-600",
+  "from-emerald-500 to-teal-600",
+  "from-orange-500 to-amber-600",
+  "from-rose-500 to-pink-600",
+  "from-indigo-500 to-blue-700",
+];
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+let _ebookRenderSeq = 0;
+async function renderEBookSection() {
+  if (!DOM.ebookCardContainer) return;
+  const seq = ++_ebookRenderSeq;
+  DOM.ebookCardContainer.innerHTML = "";
+
+  const sem = adminAppState.activeSem;
+  const div = adminAppState.activeDiv;
+
+  let books = {};
+  try {
+    const snap = await get(ref(db, `semesterList/${sem}/divisionList/${div}/eBooks`));
+    books = snap.exists() ? snap.val() : {};
+  } catch { books = {}; }
+
+  // Abort if a newer render was started while we were awaiting
+  if (seq !== _ebookRenderSeq) return;
+
+  const keys = Object.keys(books);
+  if (keys.length === 0) {
+    const emptyP = document.createElement("p");
+    emptyP.className = "text-text-secondary text-sm p-4 w-full";
+    emptyP.textContent = "No books added yet. Click + to add a book or PDF.";
+    DOM.ebookCardContainer.appendChild(emptyP);
+    return;
+  }
+
+  keys.forEach((key, idx) => {
+    const book = books[key];
+    if (!book) return;
+    const cover = EBOOK_COVERS[idx % EBOOK_COVERS.length];
+    DOM.ebookCardContainer.appendChild(buildEbookCard(book, cover, key, sem, div));
+  });
+}
+
+function buildEbookCard(book, colorClass, key, sem, div) {
+  const { fileIcon, badgeBg, badgeLabel } = getFileTypeDetails(book);
+
+  const card = document.createElement("div");
+  card.className =
+    "card bg-surface-2 hover:bg-surface-3 rounded-2xl flex items-center justify-between gap-3 p-3.5 px-4 w-full cursor-pointer transition-colors group";
+  card.addEventListener("click", () => {
+    if (book.link) window.open(book.link, "_blank", "noopener noreferrer");
+  });
+
+  const left = document.createElement("div");
+  left.className = "flex items-center gap-3 min-w-0 flex-1";
+
+  const iconBox = document.createElement("div");
+  iconBox.className =
+    "w-9 h-9 rounded-lg bg-surface-1 shrink-0 flex items-center justify-center";
+  iconBox.innerHTML = `<i class="${fileIcon} text-lg"></i>`;
+
+  const infoCol = document.createElement("div");
+  infoCol.className = "flex flex-col min-w-0";
+
+  const titleEl = document.createElement("span");
+  titleEl.className = "font-medium text-text-primary text-sm leading-snug truncate";
+  titleEl.textContent = book.name || "Untitled";
+  infoCol.appendChild(titleEl);
+
+  if (book.author) {
+    const authorEl = document.createElement("span");
+    authorEl.className = "text-xs text-text-secondary truncate";
+    authorEl.textContent = book.author;
+    infoCol.appendChild(authorEl);
+  }
+
+  left.appendChild(iconBox);
+  left.appendChild(infoCol);
+
+  const delBtn = document.createElement("button");
+  delBtn.type = "button";
+  delBtn.className =
+    "text-text-tertiary hover:text-red-400 p-1.5 shrink-0 transition-colors cursor-pointer rounded-lg hover:bg-surface-3";
+  delBtn.innerHTML = '<i class="fa-regular fa-trash-can text-sm"></i>';
+  delBtn.title = "Remove from E-Library";
+  delBtn.addEventListener("click", async (e) => {
+    e.stopPropagation();
+    const ok = await showConfirmationPopup(`Remove "${book.name}" from E-Library?`);
+    if (!ok) return;
+    showSectionLoader("Removing\u2026");
+    if (book.attachmentId && book.attachmentId !== "custom-link") {
+      await deleteDriveFile(book.attachmentId).catch(() => {});
+    }
+    await deleteData(`semesterList/${sem}/divisionList/${div}/eBooks/${key}`);
+    await hideSectionLoader();
+    renderEBookSection();
+  });
+
+  card.appendChild(left);
+  card.appendChild(delBtn);
+  return card;
 }
 // class room section
 async function showClassRoom() {
@@ -423,7 +560,10 @@ async function showClassRoom() {
     const hdr = DOM.header || document.querySelector("header");
     const hdrIcon = DOM.headerIcon || document.querySelector(".header-icon");
     const hdrTitle = DOM.headerTitle || document.querySelector(".header-title");
-    if (hdr) showElement(hdr);
+    if (hdr) {
+      showElement(hdr);
+      hdr.style.display = "";
+    }
     if (hdrIcon) {
       showElement(hdrIcon);
       hdrIcon.innerHTML = `<i class="fa-solid fa-chalkboard-user text-xl text-text-primary"></i>`;
@@ -436,8 +576,6 @@ async function showClassRoom() {
       hdrTitle.title = "Click to return to divisions";
       hdrTitle.onclick = () => showDivisionList();
     }
-    showElement(DOM.visitClassRoomBtn);
-
     // Back to Divisions button at top of class room
     let backToDivsBtn = DOM.classRoom.querySelector(".back-to-divs-btn");
     if (!backToDivsBtn) {
@@ -487,6 +625,7 @@ async function showClassRoom() {
     renderIndividualStudentCard();
     renderIndividualTeacherCard();
     renderTeacherCardInPopup();
+    await renderEBookSection();
     const adminSec = DOM.adminSection || document.querySelector(".admin-section");
     if (adminSec) showElement(adminSec);
     showElement(DOM.classRoom);
@@ -498,7 +637,6 @@ async function showClassRoom() {
 }
 async function unloadClassRoom() {
   await fadeOutEffect(DOM.classRoom);
-  hideElement(DOM.visitClassRoomBtn);
   const backToDivsBtn = DOM.classRoom.querySelector(".back-to-divs-btn");
   if (backToDivsBtn) backToDivsBtn.remove();
   DOM.studentCardContainer.innerHTML = "";
@@ -506,6 +644,7 @@ async function unloadClassRoom() {
   DOM.pickTeacherPopup.cardContainer.innerHTML = "";
   if (DOM.subjectCardContainer) DOM.subjectCardContainer.innerHTML = "";
   if (DOM.semesterPills) DOM.semesterPills.innerHTML = "";
+  if (DOM.ebookCardContainer) DOM.ebookCardContainer.innerHTML = "";
 }
 
 function renderSemesterPills() {
@@ -971,18 +1110,14 @@ DOM.logOutBtn.addEventListener("click", async () => {
   } catch (e) {
     console.warn("unsubscribeFCM error:", e);
   }
+  // Show sidebar when logging out of admin mode
+  const sideBar = document.querySelector(".side-bar");
+  if (sideBar) {
+    sideBar.classList.remove("hidden");
+  }
   await signOutUser();
   await hideSectionLoader();
   await showLoginSection();
-});
-DOM.visitClassRoomBtn.addEventListener("click", async () => {
-  fadeInEffect(lottieLoadingScreen);
-  localUserData.userData = adminAppState.userData;
-  localUserData.isVisitingClass = true;
-  localUserData.userData.class = `${adminAppState.activeSem}${
-    adminAppState.activeDiv
-  }`;
-  initClass();
 });
 DOM.pickTeacherPopup.closePopupBtn.addEventListener("click", () => {
   fadeOutEffect(DOM.pickTeacherPopup.popup);
@@ -1538,7 +1673,6 @@ function renderIndividualSubjectCard() {
       await showSectionLoader("Loading subject...");
       await hideAdminDivisions();
       hideElement(DOM.adminSection);
-      hideElement(DOM.visitClassRoomBtn);
       localUserData.userData = adminAppState.userData || localUserData.userData;
       localUserData.isVisitingClass = true;
       localUserData.userData.class = `${adminAppState.activeSem}${adminAppState.activeDiv}`;
@@ -1640,6 +1774,157 @@ DOM.addSubjectPopup.confirmBtn.addEventListener("click", async () => {
   await hideSectionLoader();
   renderIndividualSubjectCard();
 });
+
+// ── E-Library popup ──────────────────────────────────────────────────────────
+let ebookMode = "link";
+let selectedEbookFile = null;
+
+const ebookLinkSection = document.querySelector("#ebook-link-wrapper");
+const ebookFileSection = document.querySelector("#ebook-file-wrapper-section");
+const ebookModeLinkBtn  = document.querySelector("#ebook-mode-link");
+const ebookModeFileBtn  = document.querySelector("#ebook-mode-file");
+
+function setEbookMode(mode) {
+  ebookMode = mode;
+  const active   = "ebook-mode-btn flex-1 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer bg-primary text-on-primary";
+  const inactive = "ebook-mode-btn flex-1 py-2 text-sm font-semibold rounded-xl transition-all cursor-pointer bg-surface-3 text-text-secondary border border-surface-4";
+  if (mode === "link") {
+    ebookModeLinkBtn.className = active;
+    ebookModeFileBtn.className = inactive;
+    showElement(ebookLinkSection);
+    hideElement(ebookFileSection);
+  } else {
+    ebookModeFileBtn.className = active;
+    ebookModeLinkBtn.className = inactive;
+    hideElement(ebookLinkSection);
+    showElement(ebookFileSection);
+  }
+}
+
+if (ebookModeLinkBtn) ebookModeLinkBtn.addEventListener("click", () => setEbookMode("link"));
+if (ebookModeFileBtn) ebookModeFileBtn.addEventListener("click", () => setEbookMode("file"));
+
+// Click file-wrapper → trigger hidden file input
+if (DOM.ebookPopup.fileWrapper && DOM.ebookPopup.fileInput) {
+  DOM.ebookPopup.fileWrapper.addEventListener("click", () =>
+    DOM.ebookPopup.fileInput.click(),
+  );
+  DOM.ebookPopup.fileInput.addEventListener("change", () => {
+    const file = DOM.ebookPopup.fileInput.files[0];
+    if (!file) return;
+    selectedEbookFile = file;
+    DOM.ebookPopup.uploadText.textContent = file.name;
+    DOM.ebookPopup.uploadIcon.className =
+      "fa-solid fa-file-circle-check ebook-upload-icon text-3xl text-emerald-400";
+  });
+}
+
+// Open popup
+if (DOM.addEbookBtn) {
+  DOM.addEbookBtn.addEventListener("click", () => {
+    ebookMode = "link";
+    selectedEbookFile = null;
+    setEbookMode("link");
+    DOM.ebookPopup.titleInput.value  = "";
+    DOM.ebookPopup.authorInput.value = "";
+    DOM.ebookPopup.linkInput.value   = "";
+    if (DOM.ebookPopup.fileInput)  DOM.ebookPopup.fileInput.value  = "";
+    if (DOM.ebookPopup.uploadText) DOM.ebookPopup.uploadText.textContent = "Click to choose PDF, DOC, PPT…";
+    if (DOM.ebookPopup.uploadIcon) DOM.ebookPopup.uploadIcon.className =
+      "fa-solid fa-cloud-arrow-up ebook-upload-icon text-3xl text-primary";
+    hideElement(DOM.ebookPopup.titleError);
+    hideElement(DOM.ebookPopup.linkError);
+    hideElement(DOM.ebookPopup.fileError);
+    fadeInEffect(DOM.ebookPopup.popup);
+    DOM.ebookPopup.titleInput.focus();
+  });
+}
+
+// Close buttons (X + Cancel share .close-popup-btn)
+DOM.ebookPopup.closeBtns.forEach((btn) =>
+  btn.addEventListener("click", () => fadeOutEffect(DOM.ebookPopup.popup)),
+);
+
+// Submit
+if (DOM.ebookPopup.submitBtn) {
+  let _ebookSubmitting = false;
+  DOM.ebookPopup.submitBtn.addEventListener("click", async () => {
+    if (_ebookSubmitting) return;
+    _ebookSubmitting = true;
+
+    const name   = DOM.ebookPopup.titleInput.value.trim();
+    const author = DOM.ebookPopup.authorInput.value.trim();
+    const link   = DOM.ebookPopup.linkInput.value.trim();
+
+    hideElement(DOM.ebookPopup.titleError);
+    hideElement(DOM.ebookPopup.linkError);
+    hideElement(DOM.ebookPopup.fileError);
+
+    if (!name) {
+      DOM.ebookPopup.titleError.textContent = "Title is required";
+      showElement(DOM.ebookPopup.titleError);
+      _ebookSubmitting = false;
+      return;
+    }
+
+    let finalLink = "";
+    let fileType  = "link";
+    let attachmentId = "custom-link";
+
+    if (ebookMode === "link") {
+      if (!link) {
+        DOM.ebookPopup.linkError.textContent = "Link URL is required";
+        showElement(DOM.ebookPopup.linkError);
+        _ebookSubmitting = false;
+        return;
+      }
+      finalLink = link;
+      const ext = link.includes(".") ? link.split(".").pop().toLowerCase().split("?")[0] : "";
+      if (["pdf"].includes(ext))              fileType = "pdf";
+      else if (["doc","docx"].includes(ext))  fileType = "doc";
+      else if (["ppt","pptx"].includes(ext))  fileType = "ppt";
+      else if (["xls","xlsx"].includes(ext))  fileType = "xls";
+    } else {
+      if (!selectedEbookFile) {
+        DOM.ebookPopup.fileError.textContent = "Please choose a file to upload";
+        showElement(DOM.ebookPopup.fileError);
+        _ebookSubmitting = false;
+        return;
+      }
+      DOM.ebookPopup.submitBtn.disabled = true;
+      showSectionLoader("Uploading file\u2026", false);
+      const uploadPath = `eBooks/${adminAppState.activeDiv}/Sem${adminAppState.activeSem}`;
+      const result = await uploadDriveFile(selectedEbookFile, uploadPath);
+      DOM.ebookPopup.submitBtn.disabled = false;
+      await hideSectionLoader();
+      if (!result) {
+        const detail = getLastUploadError() || "Upload failed \u2014 check backend & try again";
+        DOM.ebookPopup.fileError.textContent = detail;
+        showElement(DOM.ebookPopup.fileError);
+        _ebookSubmitting = false;
+        return;
+      }
+      finalLink    = result.webViewLink || "";
+      fileType     = result.fileType    || "file";
+      attachmentId = result.fileId      || "custom-link";
+    }
+
+    const bookData = { name, author, link: finalLink, fileType, attachmentId, addedAt: Date.now() };
+
+    // Sanitize Firebase key: RTDB forbids . $ # / [ ]
+    const safeKey = name.replace(/[.$#\[\]/]/g, "_").replace(/\s+/g, "_").slice(0, 80);
+
+    showSectionLoader("Saving\u2026", false);
+    await writeData(
+      `semesterList/${adminAppState.activeSem}/divisionList/${adminAppState.activeDiv}/eBooks/${safeKey}`,
+      bookData,
+    );
+    await fadeOutEffect(DOM.ebookPopup.popup);
+    await hideSectionLoader();
+    _ebookSubmitting = false;
+    renderEBookSection();
+  });
+}
 
 window.addEventListener("popstate", () => {
   // If not authenticated or not admin, never run admin routing on popstate

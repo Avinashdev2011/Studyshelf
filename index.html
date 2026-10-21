@@ -244,7 +244,7 @@
           </svg>
         </span>
         <span
-          class="icon-wrapper personal-folder-icon z-40 hidden h-4 -translate-y-1 transform cursor-pointer lg:flex lg:h-[2.1rem] lg:translate-y-0"
+          class="icon-wrapper personal-folder-icon z-40 h-4 -translate-y-1 transform cursor-pointer lg:flex lg:h-[2.1rem] lg:translate-y-0"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -260,6 +260,50 @@
             <path
               d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"
             />
+          </svg>
+        </span>
+        <!-- Library Icon -->
+        <span
+          class="icon-wrapper library-icon z-40 hidden cursor-pointer lg:flex lg:h-[1.875rem]"
+          title="Library"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="h-full w-full"
+          >
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+          </svg>
+        </span>
+        <!-- Faculty Icon -->
+        <span
+          class="icon-wrapper faculty-icon z-40 h-4 -translate-y-1 transform cursor-pointer lg:flex lg:h-[1.875rem] lg:translate-y-0"
+          title="Faculty"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="h-full w-full"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="1.5" />
+            <circle cx="9" cy="7" r="4" stroke-width="1.5" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="1.5" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="1.5" />
           </svg>
         </span>
         <div
@@ -339,8 +383,6 @@
           Back to Admin
         </button>
         <div class="admin-btn-wrapper ml-auto flex hidden gap-2">
-          <button class="button-hug visit-class-room-btn hidden">View</button>
-
           <button class="button-hug admin-logout-btn">Logout</button>
         </div>
       </header>
@@ -350,42 +392,6 @@
         class="pointer-events-none fixed top-0 right-0 z-50 flex w-full flex-col items-end gap-2 p-4"
       ></div>
 
-      <!-- theme feature update -->
-      <div
-        class="theme-feature-update-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
-      >
-        <div
-          class="popup bg-surface-2 flex w-full max-w-[20rem] flex-col gap-2 rounded-2xl"
-        >
-          <video autoplay loop muted class="w-full rounded-t-2xl" playsinline>
-            <source
-              src="https://ik.imagekit.io/ik0myx9mu/WhatsApp%20Video%202025-10-03%20at%206.50.34%20PM.mp4?updatedAt=1759497683705"
-              type="video/mp4"
-            />
-          </video>
-          <div class="content-wrapper flex flex-col gap-2 p-4">
-            <div class="title-batch-wrapper flex items-center justify-between">
-              <p class="popup-title flex text-xl font-semibold">
-                Introducing Themes
-              </p>
-              <div
-                class="badge bg-primary text-on-primary rounded-full px-2 py-0.5 text-xs"
-              >
-                New
-              </div>
-            </div>
-            <p class="description text-text-secondary text-sm">
-              Our new Themes feature lets you personalize your experience with
-              over 40+ unique options. From vibrant and colorful to sleek and
-              minimal, there’s a look for every mood. Switch anytime and give
-              your interface a fresh new vibe!
-            </p>
-            <button class="success-btn button-fill mt-3 w-full">
-              Try Themes
-            </button>
-          </div>
-        </div>
-      </div>
       <!-- allow notification  -->
       <div
         class="allow-notification-popup-wrapper fixed top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
@@ -2361,6 +2367,37 @@
         </button>
       </section>
 
+      <!-- library section -->
+      <section
+        class="library-section hidden w-full flex-col gap-5 transition-all duration-200"
+      >
+        <div class="library-header flex flex-col gap-1">
+          <p class="text-2xl font-semibold">Library</p>
+          <p class="text-text-secondary text-sm library-subtitle"></p>
+        </div>
+        <div class="library-sem-pills flex items-center gap-2 flex-wrap"></div>
+        <div class="library-book-grid flex flex-col gap-3"></div>
+        <div class="library-empty hidden flex-col items-center justify-center gap-3 py-16 text-center">
+          <i class="fa-solid fa-book-open text-4xl text-text-tertiary"></i>
+          <p class="text-text-secondary text-sm">No e-books available for this semester yet.</p>
+        </div>
+      </section>
+
+      <!-- faculty section -->
+      <section
+        class="faculty-section hidden w-full flex-col gap-5 transition-all duration-200"
+      >
+        <div class="faculty-header flex flex-col gap-1">
+          <p class="text-2xl font-semibold">Faculty</p>
+          <p class="faculty-subtitle text-text-secondary text-sm"></p>
+        </div>
+        <div class="faculty-card-grid grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));"></div>
+        <div class="faculty-empty hidden flex-col items-center justify-center gap-3 py-16 text-center">
+          <i class="fa-solid fa-user-tie text-4xl text-text-tertiary"></i>
+          <p class="text-text-secondary text-sm">No faculty assigned to your class yet.</p>
+        </div>
+      </section>
+
       <!-- admin section -->
       <section
         class="admin-section flex hidden h-full w-full flex-col items-center justify-center gap-4 transition-all duration-200"
@@ -2780,6 +2817,64 @@
             </div>
           </div>
         </div>
+        <!-- add ebook popup -->
+        <div
+          class="add-ebook-popup-wrapper absolute top-0 left-0 z-40 flex hidden h-full w-full items-center justify-center bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
+        >
+          <div
+            class="add-ebook-popup bg-surface-2 flex w-96 max-w-[92vw] flex-col gap-4 rounded-3xl border border-surface-3 p-6 shadow-2xl lg:gap-5"
+          >
+            <div class="flex items-center justify-between">
+              <p class="text-text-primary popup-title text-2xl font-semibold">Add Book / PDF</p>
+              <div class="close-popup-btn cursor-pointer text-text-secondary hover:text-text-primary">
+                <i class="fa-solid fa-xmark text-xl"></i>
+              </div>
+            </div>
+
+            <!-- Title -->
+            <div class="flex flex-col gap-1.5">
+              <label for="ebook-title-input" class="text-sm text-text-secondary font-medium">Title *</label>
+              <input id="ebook-title-input" type="text" placeholder="e.g. Discrete Mathematics Textbook" class="custom-input" />
+              <span class="ebook-title-error text-text-error text-sm hidden"></span>
+            </div>
+
+            <!-- Author -->
+            <div class="flex flex-col gap-1.5">
+              <label for="ebook-author-input" class="text-sm text-text-secondary font-medium">Author <span class="text-text-tertiary font-normal">(optional)</span></label>
+              <input id="ebook-author-input" type="text" placeholder="e.g. Kenneth Rosen" class="custom-input" />
+            </div>
+
+            <!-- Mode toggle -->
+            <div class="flex gap-2">
+              <button type="button" id="ebook-mode-link" class="ebook-mode-btn flex-1 py-2 text-sm font-semibold rounded-xl bg-primary text-on-primary transition-all cursor-pointer">Paste Link</button>
+              <button type="button" id="ebook-mode-file" class="ebook-mode-btn flex-1 py-2 text-sm font-semibold rounded-xl bg-surface-3 text-text-secondary border border-surface-4 transition-all cursor-pointer">Upload File</button>
+            </div>
+
+            <!-- Link mode -->
+            <div id="ebook-link-wrapper" class="flex flex-col gap-1.5">
+              <label for="ebook-link-input" class="text-sm text-text-secondary font-medium">Link URL *</label>
+              <input id="ebook-link-input" type="url" placeholder="https://drive.google.com/…" class="custom-input" />
+              <span class="ebook-link-error text-text-error text-sm hidden"></span>
+            </div>
+
+            <!-- File mode -->
+            <div id="ebook-file-wrapper-section" class="hidden flex flex-col gap-1.5">
+              <label class="text-sm text-text-secondary font-medium">File *</label>
+              <div class="ebook-file-input-wrapper custom-input flex flex-col items-center justify-center gap-2 cursor-pointer py-5" style="border-style: dashed;">
+                <i class="fa-solid fa-cloud-arrow-up ebook-upload-icon text-3xl text-primary"></i>
+                <span class="ebook-upload-text text-sm text-text-secondary text-center">Click to choose PDF, DOC, PPT…</span>
+              </div>
+              <input id="ebook-file-input" type="file" class="hidden" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip" />
+              <span class="ebook-file-error text-text-error text-sm hidden"></span>
+            </div>
+
+            <!-- Actions -->
+            <div class="btn-wrapper flex justify-end gap-3 pt-1">
+              <button type="button" class="close-popup-btn cancel-btn button-outline !w-fit px-4">Cancel</button>
+              <button type="button" class="ebook-submit-btn button-fill !w-fit px-5">Add to Library</button>
+            </div>
+          </div>
+        </div>
         <!-- individual user popup -->
         <div
           class="individual-user-popup-wrapper fixed top-0 left-0 z-30 flex hidden h-full w-full flex-col items-center justify-center gap-4 bg-[#00000080] p-4 backdrop-blur-xs transition-all duration-200"
@@ -2866,6 +2961,20 @@
               class="admin-subject-card-container auto-grid-student-cards flex w-full flex-row flex-wrap justify-start gap-4 lg:gap-5"
             ></div>
           </div>
+          <!-- e-library container -->
+          <div
+            class="admin-ebook-container-wrapper flex flex-col items-center gap-2 lg:gap-3"
+          >
+            <div class="wrapper flex w-full items-center gap-2 lg:gap-3">
+              <p class="title text-2xl font-semibold">E-Library</p>
+              <div class="plus-icon add-ebook-btn cursor-pointer">
+                <i class="fa-solid fa-plus cursor-pointer text-2xl"></i>
+              </div>
+            </div>
+            <div
+              class="admin-ebook-card-container flex w-full flex-col gap-3"
+            ></div>
+          </div>
           <!-- teacher container -->
           <div
             class="teacher-card-container-wrapper flex flex-col items-center gap-2 lg:gap-3"
@@ -2908,6 +3017,8 @@
     <script src="src/scripts/avatars.js" type="module"></script>
     <script src="src/scripts/theme.js" type="module"></script>
     <script src="src/scripts/personalFolder.js" type="module"></script>
+    <script src="src/scripts/library.js" type="module"></script>
+    <script src="src/scripts/faculty.js" type="module"></script>
     <script src="src/scripts/index.js" type="module"></script>
     <script src="src/scripts/pwa.js" type="module"></script>
   </body>

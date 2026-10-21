@@ -26,6 +26,8 @@ import {
   sideBar,
   subjectSelectorPopup,
   personalFolderIcon,
+  libraryIcon,
+  facultyIcon,
 } from "./navigation.js";
 import { loadSubjectSection } from "./subject.js";
 import {
@@ -58,6 +60,8 @@ import {
 } from "./notification.js";
 import { initTheme, loadThemeOptions } from "./theme.js";
 import { loadPersonalFolderSection } from "./personalFolder.js";
+import { loadLibrarySection } from "./library.js";
+import { loadFacultySection } from "./faculty.js";
 export const lottieLoadingScreen = document.querySelector(
   ".lottie-loading-screen",
 );
@@ -299,6 +303,10 @@ export async function initRouting() {
     showLoginSection();
     return;
   }
+  // Hide all sections and show loading screen before routing to prevent
+  // stale components from the previous page bleeding through on swipe-back
+  await fadeInEffect(lottieLoadingScreen);
+  await hideSections();
   const dashboard = params.get("dashboard");
   const activeSubject = params.get("subject");
   const pyq = params.get("pyq");
@@ -311,7 +319,7 @@ export async function initRouting() {
   } else if (dashboard) {
     setActiveNavIcon(dashboardIcon);
     trackPage(appState.activeSem, appState.activeDiv, "Dashboard");
-    await showDashboard();
+    await showDashboard(false);
     if (
       localUserData.userData?.role === "admin" ||
       localUserData.isVisitingClass ||
@@ -369,6 +377,16 @@ export async function initRouting() {
     await fadeOutEffect(lottieLoadingScreen);
     trackPage(appState.activeSem, appState.activeDiv, "Personal Folder");
     await loadPersonalFolderSection();
+  } else if (params.get("library") !== null) {
+    setActiveNavIcon(libraryIcon);
+    trackPage(appState.activeSem, appState.activeDiv, "Library");
+    await loadLibrarySection();
+    await fadeOutEffect(lottieLoadingScreen);
+  } else if (params.get("faculty") !== null) {
+    setActiveNavIcon(facultyIcon);
+    trackPage(appState.activeSem, appState.activeDiv, "Faculty");
+    await loadFacultySection();
+    await fadeOutEffect(lottieLoadingScreen);
   } else if (pyq) {
     await fadeOutEffect(lottieLoadingScreen);
     trackPage(
@@ -381,7 +399,7 @@ export async function initRouting() {
     history.pushState({}, "", "/?dashboard=''");
     setActiveNavIcon(dashboardIcon);
     trackPage(appState.activeSem, appState.activeDiv, "Dashboard");
-    await showDashboard();
+    await showDashboard(false);
     await fadeOutEffect(lottieLoadingScreen);
   }
 }
@@ -452,7 +470,6 @@ export async function hideSections(
   const allSections = document.querySelectorAll("section");
   const adminBtnWrapper = document.querySelector(".admin-btn-wrapper");
   const adminReturnBtn = document.querySelector(".admin-return-btn");
-  const visitClassRoomBtn = document.querySelector(".visit-class-room-btn");
   const adminSection = document.querySelector(".admin-section");
   const classRoom = document.querySelector(".class-room");
   const divisionList = document.querySelector(".division-list");
@@ -462,7 +479,6 @@ export async function hideSections(
   if (!showHeader) {
     if (adminBtnWrapper) hideElement(adminBtnWrapper);
     if (adminReturnBtn) hideElement(adminReturnBtn);
-    if (visitClassRoomBtn) hideElement(visitClassRoomBtn);
     if (adminSection) hideElement(adminSection);
     if (classRoom) hideElement(classRoom);
     if (divisionList) hideElement(divisionList);
@@ -470,7 +486,6 @@ export async function hideSections(
     if (adminSection) hideElement(adminSection);
     if (classRoom) hideElement(classRoom);
     if (divisionList) hideElement(divisionList);
-    if (visitClassRoomBtn) hideElement(visitClassRoomBtn);
     if (
       localUserData.userData?.role === "admin" ||
       adminAppState.userData?.role === "admin"

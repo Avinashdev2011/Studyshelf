@@ -68,4 +68,9 @@ export function hideElement(element) {
 export function showElement(element) {
   element.classList.remove("hidden");
   element.style.opacity = "1";
+  if (element.classList.contains("flex")) {
+    element.style.display = "flex";
+  } else {
+    element.style.display = "";
+  }
 }

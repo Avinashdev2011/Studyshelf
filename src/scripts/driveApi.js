@@ -42,8 +42,12 @@ export async function deleteDriveFile(attachmentId) {
   }
 }
 
+let _lastUploadError = null;
+export function getLastUploadError() { return _lastUploadError; }
+
 export async function uploadDriveFile(file, path) {
-  if (!file) return null;
+  _lastUploadError = null;
+  if (!file) { _lastUploadError = "No file selected"; return null; }
 
   try {
     const formData = new FormData();
@@ -82,6 +86,10 @@ export async function uploadDriveFile(file, path) {
       size: data.size || file?.size || 0,
     };
   } catch (err) {
+    const isNetwork = err instanceof TypeError && err.message.toLowerCase().includes("fetch");
+    _lastUploadError = isNetwork
+      ? "Cannot reach Drive backend (localhost:3001). Run: cd drive-backend && node server.js"
+      : err.message;
     console.error("Error uploading file:", err);
     return null;
   }

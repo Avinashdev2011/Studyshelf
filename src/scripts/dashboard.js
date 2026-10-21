@@ -406,8 +406,8 @@ export async function loadDashboard() {
     showErrorSection("Error loading dashboard:", error);
   }
 }
-export async function showDashboard() {
-  history.pushState({}, "", "/?dashboard=''");
+export async function showDashboard(pushHistory = true) {
+  if (pushHistory) history.pushState({}, "", "/?dashboard=''");
   if (window.innerWidth > 500)
     headerTitle.textContent = `Hello ${appState.userData.firstName}`;
   else headerTitle.textContent = `Hi ${appState.userData.firstName}`;
