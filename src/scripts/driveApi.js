@@ -1,7 +1,7 @@
 import { showErrorSection } from "./error.js";
 
 export const BACKEND_URL = (
-  import.meta.env.VITE_DRIVE_BACKEND_URL || "http://localhost:3001"
+  import.meta.env.VITE_DRIVE_BACKEND_URL || ""
 ).replace(/\/$/, "");
 
 export const GAS_URL = (

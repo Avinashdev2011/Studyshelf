@@ -200,6 +200,8 @@ export default defineConfig({
       "/delete": "http://127.0.0.1:3001",
       "/create-student": "http://127.0.0.1:3001",
       "/create-teacher": "http://127.0.0.1:3001",
+      "/assign-teacher": "http://127.0.0.1:3001",
+      "/remove-teacher-class": "http://127.0.0.1:3001",
       "/delete-user": "http://127.0.0.1:3001",
       "/drive-status": "http://127.0.0.1:3001",
       "/uploads": "http://127.0.0.1:3001",

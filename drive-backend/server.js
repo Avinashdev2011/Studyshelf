@@ -411,10 +411,12 @@ app.post("/create-teacher", async (req, res) => {
     }
 
     const uid = userRecord.uid;
-    const studentClass = semester && division ? `${semester}${division}` : "";
+    const semDigits = semester ? String(semester).replace(/\D+/g, "") : "";
+    const divUpper = division ? String(division).trim().toUpperCase() : "";
     const assignedClasses = {};
-    if (studentClass) {
-      assignedClasses[studentClass] = true;
+    if (semDigits && divUpper) {
+      assignedClasses[`${semDigits}${divUpper}`] = true;
+      assignedClasses[`semester${semDigits}${divUpper}`] = true;
     }
 
     // Preserve existing assigned classes if user already exists
@@ -442,6 +444,75 @@ app.post("/create-teacher", async (req, res) => {
     res.json({ success: true, user: teacherData });
   } catch (error) {
     console.error("Error creating teacher:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Assign Teacher to Class Endpoint
+app.post("/assign-teacher", async (req, res) => {
+  try {
+    const { teacherId, semester, division, className } = req.body;
+    if (!teacherId) {
+      return res.status(400).json({ success: false, error: "teacherId is required" });
+    }
+
+    if (!adminDb) {
+      return res.status(500).json({ success: false, error: "Firebase Admin DB is not configured" });
+    }
+
+    const semDigits = semester ? String(semester).replace(/\D+/g, "") : "";
+    const divUpper = division ? String(division).trim().toUpperCase() : "";
+    const key1 = className ? String(className).trim() : (semDigits && divUpper ? `${semDigits}${divUpper}` : "");
+    const key2 = semDigits && divUpper ? `semester${semDigits}${divUpper}` : key1;
+
+    const updates = {};
+    if (key1) updates[`userData/${teacherId}/assignedClasses/${key1}`] = true;
+    if (key2) updates[`userData/${teacherId}/assignedClasses/${key2}`] = true;
+
+    await adminDb.ref().update(updates);
+    res.json({ success: true, message: "Teacher assigned to class successfully" });
+  } catch (error) {
+    console.error("Error assigning teacher:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Remove Teacher from Class Endpoint
+app.post("/remove-teacher-class", async (req, res) => {
+  try {
+    const { teacherId, semester, division, className } = req.body;
+    if (!teacherId) {
+      return res.status(400).json({ success: false, error: "teacherId is required" });
+    }
+
+    if (!adminDb) {
+      return res.status(500).json({ success: false, error: "Firebase Admin DB is not configured" });
+    }
+
+    const semDigits = semester ? String(semester).replace(/\D+/g, "") : "";
+    const divUpper = division ? String(division).trim().toUpperCase() : "";
+    const key1 = className ? String(className).trim().toLowerCase() : (semDigits && divUpper ? `${semDigits}${divUpper}`.toLowerCase() : "");
+    const key2 = semDigits && divUpper ? `semester${semDigits}${divUpper}`.toLowerCase() : key1;
+
+    const assignedRef = adminDb.ref(`userData/${teacherId}/assignedClasses`);
+    const snap = await assignedRef.once("value");
+    if (snap.exists()) {
+      const classes = snap.val();
+      for (const k of Object.keys(classes)) {
+        const lowerK = k.toLowerCase().trim();
+        if (
+          (key1 && lowerK === key1) ||
+          (key2 && lowerK === key2) ||
+          (semDigits && divUpper && (lowerK === `${semDigits}${divUpper}`.toLowerCase() || lowerK === `semester${semDigits}${divUpper}`.toLowerCase()))
+        ) {
+          await adminDb.ref(`userData/${teacherId}/assignedClasses/${k}`).remove();
+        }
+      }
+    }
+
+    res.json({ success: true, message: "Teacher removed from class successfully" });
+  } catch (error) {
+    console.error("Error removing teacher from class:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

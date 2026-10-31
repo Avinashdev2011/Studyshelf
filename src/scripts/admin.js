@@ -778,20 +778,34 @@ async function getTeacherData() {
     const snapshot = await get(usersRef);
     const matchingTeachers = {};
     const allTeachers = {};
-    const sem = adminAppState.activeSem;
-    const div = adminAppState.activeDiv;
-    const targetKey = `${sem}${div}`;
-    const altKey = `${sem.replace("semester", "")}${div}`;
+    const sem = String(adminAppState.activeSem);
+    const div = String(adminAppState.activeDiv);
+    const semNum = sem.replace(/\D+/g, "");
+    const divUpper = div.trim().toUpperCase();
+    const targetKey = `${semNum}${divUpper}`.toLowerCase();
+    const altKey = `semester${semNum}${divUpper}`.toLowerCase();
+
     if (snapshot.exists()) {
       const allUsers = snapshot.val();
       for (const [key, user] of Object.entries(allUsers)) {
         if (user && user.role === "teacher") {
+          user.userId = user.userId || user.id || key;
+          user.id = user.userId;
           allTeachers[key] = user;
-          if (
-            user.assignedClasses &&
-            (user.assignedClasses[targetKey] || user.assignedClasses[altKey])
-          ) {
-            matchingTeachers[key] = user;
+
+          if (user.assignedClasses && typeof user.assignedClasses === "object") {
+            const hasClass = Object.keys(user.assignedClasses).some((cls) => {
+              const cleanCls = String(cls).trim().toLowerCase();
+              return (
+                cleanCls === targetKey ||
+                cleanCls === altKey ||
+                cleanCls === `${sem}${div}`.toLowerCase() ||
+                cleanCls === `semester${sem}${div}`.toLowerCase()
+              );
+            });
+            if (hasClass) {
+              matchingTeachers[key] = user;
+            }
           }
         }
       }
@@ -803,53 +817,86 @@ async function getTeacherData() {
     return {};
   }
 }
+
 function renderTeacherCardInPopup() {
-  for (const key in adminAppState.allTeachers) {
+  if (!DOM.pickTeacherPopup?.cardContainer) return;
+  DOM.pickTeacherPopup.cardContainer.innerHTML = "";
+
+  const currentTeachers =
+    adminAppState.semesterData?.[adminAppState.activeSem]?.divisionList?.[
+      adminAppState.activeDiv
+    ]?.teacherList || {};
+
+  const allTeacherKeys = Object.keys(adminAppState.allTeachers || {});
+
+  for (const key of allTeacherKeys) {
     const element = adminAppState.allTeachers[key];
+    const isAlreadyAssigned = Boolean(currentTeachers[key]);
+
     const card = document.createElement("div");
-    card.className =
-      "card bg-surface-2 items-center border border-surface-3 p-3 md:px-4 flex justify-between rounded-xl cursor-pointer";
+    card.className = `card bg-surface-2 items-center border border-surface-3 p-3 md:px-4 flex justify-between rounded-xl transition-all ${
+      isAlreadyAssigned
+        ? "opacity-60 cursor-default"
+        : "cursor-pointer custom-hover hover:border-primary/50"
+    }`;
+
     const wrapper = document.createElement("div");
     wrapper.className =
-      "wrapper w-[12rem] md:w-[22rem] gap-1.5 md:gap-4 flex items-center justify-between";
+      "wrapper w-full gap-2 md:gap-4 flex items-center justify-between";
+
     const namePfpWrapper = document.createElement("div");
-    namePfpWrapper.className = "name-pfp-wrapper flex items-center gap-2";
+    namePfpWrapper.className = "name-pfp-wrapper flex items-center gap-2.5 min-w-0";
 
     const img = document.createElement("img");
-    img.src = element.pfpLink;
+    img.src = element.pfpLink || "https://ik.imagekit.io/yn9gz2n2g/Avatars/Male/m1.png";
     img.alt = "";
-    img.className = "pfp h-10 w-10";
+    img.className = "pfp h-10 w-10 rounded-full object-cover shrink-0";
 
     const nameContainer = document.createElement("div");
     nameContainer.className =
-      "flex flex-col leading-tight text-sm md:text-base";
+      "flex flex-col leading-tight text-sm md:text-base min-w-0";
 
     const firstName = document.createElement("p");
-    firstName.className = "truncate w-full";
-    firstName.textContent = element.firstName;
+    firstName.className = "truncate font-medium";
+    firstName.textContent = `${element.firstName || ""} ${element.lastName || ""}`.trim() || "Teacher";
 
-    const lastName = document.createElement("p");
-    lastName.className = "truncate w-full";
-    lastName.textContent = element.lastName;
+    const emailP = document.createElement("p");
+    emailP.className = "text-xs text-text-secondary truncate";
+    emailP.textContent = element.email || "";
 
     nameContainer.appendChild(firstName);
-    nameContainer.appendChild(lastName);
+    if (element.email) nameContainer.appendChild(emailP);
 
     namePfpWrapper.appendChild(img);
     namePfpWrapper.appendChild(nameContainer);
-
     wrapper.appendChild(namePfpWrapper);
+
+    const actionBadge = document.createElement("div");
+    if (isAlreadyAssigned) {
+      actionBadge.className =
+        "text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium shrink-0";
+      actionBadge.textContent = "Added";
+    } else {
+      actionBadge.className =
+        "text-xs px-3 py-1 rounded-lg bg-primary text-text-primary font-medium shrink-0";
+      actionBadge.textContent = "Add";
+    }
+    wrapper.appendChild(actionBadge);
     card.appendChild(wrapper);
 
+    if (!isAlreadyAssigned) {
+      card.addEventListener("click", () => {
+        addTeacherInClass(key);
+      });
+    }
+
     DOM.pickTeacherPopup.cardContainer.appendChild(card);
-    card.addEventListener("click", () => {
-      addTeacherInClass(key);
-    });
   }
+
   const wrapper = document.createElement("div");
   wrapper.className =
-    "p-4 text-center border border-surface-3 rounded-xl cursor-pointer custom-hover";
-  wrapper.innerHTML = "Add new teacher account";
+    "p-4 text-center border border-surface-3 rounded-xl cursor-pointer custom-hover font-medium flex items-center justify-center gap-2 text-primary hover:bg-surface-3 transition-colors";
+  wrapper.innerHTML = `<i class="fa-solid fa-user-plus"></i> Add new teacher account`;
   DOM.pickTeacherPopup.cardContainer.appendChild(wrapper);
   wrapper.addEventListener("click", async () => {
     await fadeOutEffect(DOM.pickTeacherPopup.popup);
@@ -936,57 +983,140 @@ function renderIndividualStudentCard() {
   }
 }
 function renderIndividualTeacherCard() {
-  for (const key in adminAppState.semesterData[adminAppState.activeSem]
-    .divisionList[adminAppState.activeDiv].teacherList) {
-    const teacher =
-      adminAppState.semesterData[adminAppState.activeSem].divisionList[
-        adminAppState.activeDiv
-      ].teacherList[key];
+  if (!DOM.teacherCardContainer) return;
+  DOM.teacherCardContainer.innerHTML = "";
+
+  const teacherList =
+    adminAppState.semesterData?.[adminAppState.activeSem]?.divisionList?.[
+      adminAppState.activeDiv
+    ]?.teacherList || {};
+
+  const keys = Object.keys(teacherList);
+  if (keys.length === 0) {
+    const emptyP = document.createElement("p");
+    emptyP.className = "text-text-secondary text-sm py-2 px-1 col-span-full";
+    emptyP.textContent = "No teachers assigned to this class yet.";
+    DOM.teacherCardContainer.appendChild(emptyP);
+    return;
+  }
+
+  for (const key of keys) {
+    const teacher = teacherList[key];
+    if (!teacher) continue;
+
+    const teacherUid = teacher.userId || teacher.id || teacher.uid || key;
+    teacher.userId = teacherUid;
+
     const card = document.createElement("div");
     card.className =
       "individual-teacher-card bg-surface-2 flex w-full items-center justify-between rounded-3xl px-6 py-5 cursor-pointer custom-hover";
+
     const wrapper = document.createElement("div");
     wrapper.className = "image-name-wrapper flex items-center gap-2";
+
     const img = document.createElement("img");
-    img.src = teacher.pfpLink;
+    img.src = teacher.pfpLink || "https://ik.imagekit.io/yn9gz2n2g/Avatars/Male/m1.png";
     img.alt = "";
-    img.className = "pfp h-[45px] w-[45px] lg:h-[50px] lg:w-[50px]";
+    img.className = "pfp h-[45px] w-[45px] lg:h-[50px] lg:w-[50px] rounded-full object-cover";
+
     const nameP = document.createElement("p");
-    nameP.className = "student-name";
-    nameP.textContent = `${teacher.firstName} ${teacher.lastName}`;
+    nameP.className = "student-name font-medium";
+    nameP.textContent = `${teacher.firstName || ""} ${teacher.lastName || ""}`.trim() || "Teacher";
+
     wrapper.appendChild(img);
     wrapper.appendChild(nameP);
     card.appendChild(wrapper);
+
+    // Quick remove button
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "text-text-secondary hover:text-red-500 p-2 transition-colors cursor-pointer";
+    removeBtn.title = "Remove from this class";
+    removeBtn.innerHTML = `<i class="fa-solid fa-user-minus"></i>`;
+    removeBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      activeUserId = teacherUid;
+      activeUserObj = teacher;
+      DOM.individualUserPopup.removeUserBtn.click();
+    });
+    card.appendChild(removeBtn);
+
     card.addEventListener("click", () => {
-      activeUserId = teacher.userId;
+      activeUserId = teacherUid;
       activeUserObj = teacher;
       initIndividualUserPopup(true);
     });
+
     DOM.teacherCardContainer.appendChild(card);
   }
 }
+
 async function addTeacherInClass(teacherId, skipConfirm = false) {
+  if (!teacherId) return;
   if (!skipConfirm) {
     const isConfirm = await showConfirmationPopup(
-      "Teacher will be added will have access to the class",
+      "Are you sure you want to add this teacher to the class?",
     );
     if (!isConfirm) return;
   }
+
   showSectionLoader("Updating data...");
-  if (DOM.pickTeacherPopup.popup) await fadeOutEffect(DOM.pickTeacherPopup.popup);
+  if (DOM.pickTeacherPopup?.popup) await fadeOutEffect(DOM.pickTeacherPopup.popup);
+
   const sem = adminAppState.activeSem;
   const div = adminAppState.activeDiv;
-  const key1 = `${sem}${div}`;
-  const key2 = `${sem.replace("semester", "")}${div}`;
-  await updateData(`userData/${teacherId}/assignedClasses/`, {
-    [key1]: true,
-    [key2]: true,
-  });
-  await showSectionLoader("Syncing data...");
-  await syncAdminData();
-  hideAdminDivisions();
+  const semNum = String(sem).replace(/\D+/g, "");
+  const divUpper = String(div).trim().toUpperCase();
+  const key1 = `${semNum}${divUpper}`;
+  const key2 = `semester${semNum}${divUpper}`;
+
+  // 1. Call backend endpoint using Admin SDK
+  try {
+    await fetch(`${BACKEND_URL}/assign-teacher`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        teacherId,
+        semester: sem,
+        division: div,
+      }),
+    });
+  } catch (backendErr) {
+    console.warn("Backend assign-teacher warning, trying client update:", backendErr);
+  }
+
+  // 2. Client-side update as direct fallback (WITHOUT trailing slash)
+  try {
+    await updateData(`userData/${teacherId}/assignedClasses`, {
+      [key1]: true,
+      [key2]: true,
+    });
+  } catch (e) {
+    console.warn("Direct update error:", e);
+  }
+
+  // 3. Immediately update local state in adminAppState
+  if (adminAppState.allTeachers?.[teacherId]) {
+    const teacher = adminAppState.allTeachers[teacherId];
+    if (!teacher.assignedClasses) teacher.assignedClasses = {};
+    teacher.assignedClasses[key1] = true;
+    teacher.assignedClasses[key2] = true;
+    if (adminAppState.semesterData?.[adminAppState.activeSem]?.divisionList?.[adminAppState.activeDiv]) {
+      if (!adminAppState.semesterData[adminAppState.activeSem].divisionList[adminAppState.activeDiv].teacherList) {
+        adminAppState.semesterData[adminAppState.activeSem].divisionList[adminAppState.activeDiv].teacherList = {};
+      }
+      adminAppState.semesterData[adminAppState.activeSem].divisionList[adminAppState.activeDiv].teacherList[teacherId] = teacher;
+    }
+  }
+
+  // 4. Refresh teacher data and re-render
+  const teacherData = await getTeacherData();
+  if (teacherData && adminAppState.semesterData?.[adminAppState.activeSem]?.divisionList?.[adminAppState.activeDiv]) {
+    adminAppState.semesterData[adminAppState.activeSem].divisionList[adminAppState.activeDiv].teacherList = teacherData;
+  }
+  renderIndividualTeacherCard();
+  renderTeacherCardInPopup();
   await hideSectionLoader();
-  showClassRoom();
 }
 async function deleteUser(uid) {
   try {
@@ -1127,8 +1257,10 @@ if (DOM.addUserPopup.form) {
         try {
           const sem = adminAppState.activeSem;
           const div = adminAppState.activeDiv;
-          const key1 = `${sem}${div}`;
-          const key2 = `${sem.replace("semester", "")}${div}`;
+          const semNum = String(sem).replace(/\D+/g, "");
+          const divUpper = String(div).trim().toUpperCase();
+          const key1 = `${semNum}${divUpper}`;
+          const key2 = `semester${semNum}${divUpper}`;
           const tempId = "tch_" + Date.now();
           const teacherData = {
             id: tempId,
@@ -1149,7 +1281,7 @@ if (DOM.addUserPopup.form) {
           await addTeacherInClass(tempId, true);
         } catch (dbErr) {
           hideSectionLoader();
-          DOM.addUserPopup.error.textContent = err.message;
+          DOM.addUserPopup.error.textContent = err.message || dbErr.message;
           showElement(DOM.addUserPopup.error);
         }
       } finally {
@@ -1312,21 +1444,63 @@ DOM.individualUserPopup.removeUserBtn.addEventListener("click", async () => {
   );
   if (!isConfirmed) return;
   const userId = activeUserId;
+  if (!userId) {
+    console.error("No active user ID found for teacher");
+    return;
+  }
   const sem = adminAppState.activeSem;
   const div = adminAppState.activeDiv;
-  const key1 = `${sem}${div}`;
-  const key2 = `${sem.replace("semester", "")}${div}`;
-  showSectionLoader("Updating data...");
+  const semNum = String(sem).replace(/\D+/g, "");
+  const divUpper = String(div).trim().toUpperCase();
+  const key1 = `${semNum}${divUpper}`;
+  const key2 = `semester${semNum}${divUpper}`;
+
+  showSectionLoader("Removing teacher from class...");
   await fadeOutEffect(DOM.individualUserPopup.popup);
-  await updateData(`userData/${userId}/assignedClasses/`, {
-    [key1]: null,
-    [key2]: null,
-  });
-  await showSectionLoader("Syncing data...");
-  await syncAdminData();
-  await hideAdminDivisions();
+
+  // 1. Call backend remove-teacher-class endpoint (Admin SDK)
+  try {
+    await fetch(`${BACKEND_URL}/remove-teacher-class`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        teacherId: userId,
+        semester: sem,
+        division: div,
+      }),
+    });
+  } catch (backendErr) {
+    console.warn("Backend remove-teacher-class warning:", backendErr);
+  }
+
+  // 2. Client-side delete fallbacks (WITHOUT trailing slash)
+  try {
+    await deleteData(`userData/${userId}/assignedClasses/${key1}`);
+    await deleteData(`userData/${userId}/assignedClasses/${key2}`);
+  } catch (e) {
+    console.warn("Direct delete error:", e);
+  }
+
+  // 3. Immediately update local state
+  if (adminAppState.allTeachers?.[userId]?.assignedClasses) {
+    delete adminAppState.allTeachers[userId].assignedClasses[key1];
+    delete adminAppState.allTeachers[userId].assignedClasses[key2];
+    delete adminAppState.allTeachers[userId].assignedClasses[`${sem}${div}`];
+  }
+  if (
+    adminAppState.semesterData?.[adminAppState.activeSem]?.divisionList?.[adminAppState.activeDiv]?.teacherList?.[userId]
+  ) {
+    delete adminAppState.semesterData[adminAppState.activeSem].divisionList[adminAppState.activeDiv].teacherList[userId];
+  }
+
+  // 4. Refresh teacher data and re-render
+  const teacherData = await getTeacherData();
+  if (teacherData && adminAppState.semesterData?.[adminAppState.activeSem]?.divisionList?.[adminAppState.activeDiv]) {
+    adminAppState.semesterData[adminAppState.activeSem].divisionList[adminAppState.activeDiv].teacherList = teacherData;
+  }
+  renderIndividualTeacherCard();
+  renderTeacherCardInPopup();
   await hideSectionLoader();
-  await showClassRoom();
 });
 
 // individual student related
@@ -1369,8 +1543,12 @@ function initIndividualUserPopup(isTeacher = false) {
     hideElement(DOM.individualUserPopup.rollNo);
     hideElement(DOM.individualUserPopup.role);
     hideElement(DOM.individualUserPopup.div);
+    
+    // For teachers: Show "Remove teacher from class" and allow "Delete User" as well
+    DOM.individualUserPopup.removeUserBtn.textContent = "Remove from this Class";
     showElement(DOM.individualUserPopup.removeUserBtn);
-    hideElement(DOM.individualUserPopup.deleteUserBtn);
+    DOM.individualUserPopup.deleteUserBtn.textContent = "Delete Teacher Account";
+    showElement(DOM.individualUserPopup.deleteUserBtn);
   } else {
     const student = activeUserObj;
     showElement(DOM.individualUserPopup.rollNo);
@@ -1378,6 +1556,7 @@ function initIndividualUserPopup(isTeacher = false) {
     showElement(DOM.individualUserPopup.div);
     hideElement(DOM.individualUserPopup.assignedClasses);
     hideElement(DOM.individualUserPopup.removeUserBtn);
+    DOM.individualUserPopup.deleteUserBtn.textContent = "Delete Student Account";
     showElement(DOM.individualUserPopup.deleteUserBtn);
 
     DOM.individualUserPopup.firstName.innerHTML = `
