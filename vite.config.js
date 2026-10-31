@@ -1,12 +1,46 @@
 import { defineConfig } from "vite";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawn } from "node:child_process";
+import http from "node:http";
 import tailwindcss from "@tailwindcss/vite";
 import { VitePWA } from "vite-plugin-pwa";
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+function driveBackendRunnerPlugin() {
+  let backendProc = null;
+  return {
+    name: "drive-backend-runner",
+    configureServer(server) {
+      const req = http.get("http://127.0.0.1:3001/drive-status", () => {
+        // Backend is already running
+      });
+      req.on("error", () => {
+        try {
+          console.log("[Vite] Auto-starting Drive Backend on port 3001...");
+          backendProc = spawn(process.execPath, [resolve(__dirname, "drive-backend/server.js")], {
+            stdio: "inherit",
+            cwd: resolve(__dirname, "drive-backend"),
+          });
+          backendProc.on("error", (err) => {
+            console.error("[Vite] Failed to start Drive Backend:", err);
+          });
+        } catch (e) {
+          console.error("[Vite] Error spawning Drive Backend:", e);
+        }
+      });
+      server.httpServer?.on("close", () => {
+        if (backendProc) {
+          try { backendProc.kill(); } catch (e) {}
+        }
+      });
+    },
+  };
+}
 export default defineConfig({
   plugins: [
     tailwindcss(),
+    driveBackendRunnerPlugin(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "robots.txt"],
@@ -161,6 +195,15 @@ export default defineConfig({
 
   server: {
     allowedHosts: ["58gc7n6p-5173.inc1.devtunnels.ms"],
+    proxy: {
+      "/upload": "http://127.0.0.1:3001",
+      "/delete": "http://127.0.0.1:3001",
+      "/create-student": "http://127.0.0.1:3001",
+      "/create-teacher": "http://127.0.0.1:3001",
+      "/delete-user": "http://127.0.0.1:3001",
+      "/drive-status": "http://127.0.0.1:3001",
+      "/uploads": "http://127.0.0.1:3001",
+    },
   },
 
   build: {

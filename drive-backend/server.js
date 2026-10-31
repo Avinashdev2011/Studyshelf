@@ -10,9 +10,10 @@ import { initializeApp, cert, getApps } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { getDatabase } from "firebase-admin/database";
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: join(__dirname, ".env") });
 dotenv.config();
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 app.use(cors({ origin: "*" }));
 app.use(express.json());
@@ -373,6 +374,74 @@ app.post("/create-student", async (req, res) => {
     res.json({ success: true, user: studentData });
   } catch (error) {
     console.error("Error creating student:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Create Teacher Endpoint
+app.post("/create-teacher", async (req, res) => {
+  try {
+    const { firstName, lastName, email, password, semester, division } = req.body;
+    if (!firstName || !lastName || !email || !password) {
+      return res.status(400).json({ success: false, error: "Missing required teacher details" });
+    }
+
+    if (!adminAuth || !adminDb) {
+      return res.status(500).json({ success: false, error: "Firebase Admin is not configured on server" });
+    }
+
+    let userRecord;
+    try {
+      userRecord = await adminAuth.getUserByEmail(email);
+      userRecord = await adminAuth.updateUser(userRecord.uid, {
+        password,
+        displayName: `${firstName} ${lastName}`,
+      });
+    } catch (e) {
+      if (e.code === "auth/user-not-found") {
+        userRecord = await adminAuth.createUser({
+          email,
+          password,
+          displayName: `${firstName} ${lastName}`,
+          emailVerified: true,
+        });
+      } else {
+        throw e;
+      }
+    }
+
+    const uid = userRecord.uid;
+    const studentClass = semester && division ? `${semester}${division}` : "";
+    const assignedClasses = {};
+    if (studentClass) {
+      assignedClasses[studentClass] = true;
+    }
+
+    // Preserve existing assigned classes if user already exists
+    try {
+      const existingSnap = await adminDb.ref(`userData/${uid}`).once("value");
+      const existingVal = existingSnap.val();
+      if (existingVal && existingVal.assignedClasses) {
+        Object.assign(assignedClasses, existingVal.assignedClasses);
+      }
+    } catch (snapErr) {}
+
+    const teacherData = {
+      id: uid,
+      userId: uid,
+      firstName,
+      lastName,
+      email,
+      role: "teacher",
+      assignedClasses,
+      theme: "default",
+      pfpLink: "https://ik.imagekit.io/yn9gz2n2g/Avatars/Male/m1.png",
+    };
+
+    await adminDb.ref(`userData/${uid}`).set(teacherData);
+    res.json({ success: true, user: teacherData });
+  } catch (error) {
+    console.error("Error creating teacher:", error);
     res.status(500).json({ success: false, error: error.message });
   }
 });

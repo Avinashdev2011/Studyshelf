@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "backend": "node drive-backend/server.js",
     "build": "vite build",
     "preview": "vite preview"
   },

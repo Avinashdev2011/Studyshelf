@@ -76,6 +76,8 @@ const DOM = {
     firstName: document.querySelector("#admin-student-first-name"),
     lastName: document.querySelector("#admin-student-last-name"),
     roll: document.querySelector("#admin-student-roll"),
+    rollWrapper: document.querySelector("#admin-user-roll-wrapper"),
+    inviteCodeWrapper: document.querySelector("#admin-user-invite-code-wrapper"),
     email: document.querySelector("#admin-student-email"),
     password: document.querySelector("#admin-student-password"),
     error: document.querySelector("#admin-add-student-error"),
@@ -346,6 +348,11 @@ export async function initAdminRouting(userData) {
 //division section (primary Admin Dashboard view)
 async function showDivisionList() {
   await hideAdminDivisions();
+  if (DOM.classRoom) {
+    DOM.classRoom.classList.add("hidden");
+    DOM.classRoom.style.display = "none";
+    DOM.classRoom.style.opacity = "0";
+  }
   const hdr = DOM.header || document.querySelector("header");
   const hdrIcon = DOM.headerIcon || document.querySelector(".header-icon");
   const hdrTitle = DOM.headerTitle || document.querySelector(".header-title");
@@ -439,6 +446,11 @@ async function showDivisionList() {
 }
 async function unloadDivisionList() {
   await fadeOutEffect(DOM.divisionList);
+  if (DOM.divisionList) {
+    DOM.divisionList.classList.add("hidden");
+    DOM.divisionList.style.display = "none";
+    DOM.divisionList.style.opacity = "0";
+  }
   DOM.divCardContainer.innerHTML = "";
 }
 const EBOOK_COVERS = [
@@ -628,6 +640,11 @@ async function showClassRoom() {
     await renderEBookSection();
     const adminSec = DOM.adminSection || document.querySelector(".admin-section");
     if (adminSec) showElement(adminSec);
+    if (DOM.divisionList) {
+      DOM.divisionList.classList.add("hidden");
+      DOM.divisionList.style.display = "none";
+      DOM.divisionList.style.opacity = "0";
+    }
     showElement(DOM.classRoom);
   } catch (err) {
     console.error("Error in showClassRoom:", err);
@@ -637,6 +654,11 @@ async function showClassRoom() {
 }
 async function unloadClassRoom() {
   await fadeOutEffect(DOM.classRoom);
+  if (DOM.classRoom) {
+    DOM.classRoom.classList.add("hidden");
+    DOM.classRoom.style.display = "none";
+    DOM.classRoom.style.opacity = "0";
+  }
   const backToDivsBtn = DOM.classRoom.querySelector(".back-to-divs-btn");
   if (backToDivsBtn) backToDivsBtn.remove();
   DOM.studentCardContainer.innerHTML = "";
@@ -717,6 +739,16 @@ function renderSemesterPills() {
 async function hideAdminDivisions() {
   await unloadDivisionList();
   await unloadClassRoom();
+  if (DOM.divisionList) {
+    DOM.divisionList.classList.add("hidden");
+    DOM.divisionList.style.display = "none";
+    DOM.divisionList.style.opacity = "0";
+  }
+  if (DOM.classRoom) {
+    DOM.classRoom.classList.add("hidden");
+    DOM.classRoom.style.display = "none";
+    DOM.classRoom.style.opacity = "0";
+  }
 }
 // other function
 async function getStudentRawData() {
@@ -749,12 +781,16 @@ async function getTeacherData() {
     const sem = adminAppState.activeSem;
     const div = adminAppState.activeDiv;
     const targetKey = `${sem}${div}`;
+    const altKey = `${sem.replace("semester", "")}${div}`;
     if (snapshot.exists()) {
       const allUsers = snapshot.val();
       for (const [key, user] of Object.entries(allUsers)) {
         if (user && user.role === "teacher") {
           allTeachers[key] = user;
-          if (user.assignedClasses && user.assignedClasses[targetKey]) {
+          if (
+            user.assignedClasses &&
+            (user.assignedClasses[targetKey] || user.assignedClasses[altKey])
+          ) {
             matchingTeachers[key] = user;
           }
         }
@@ -815,16 +851,9 @@ function renderTeacherCardInPopup() {
     "p-4 text-center border border-surface-3 rounded-xl cursor-pointer custom-hover";
   wrapper.innerHTML = "Add new teacher account";
   DOM.pickTeacherPopup.cardContainer.appendChild(wrapper);
-  wrapper.addEventListener("click", () => {
-    const encryptedData = encryptObj({
-      division: `${adminAppState.activeDiv}`,
-      semester: `${adminAppState.activeSem.replace("semester", "")}`,
-      role: "teacher",
-    });
-    encryptedCode = encryptedData;
-    DOM.addUserPopup.link.textContent = encryptedCode;
-    DOM.addUserPopup.popupTitle.textContent = `Add teacher`;
-    fadeInEffect(DOM.addUserPopup.popup);
+  wrapper.addEventListener("click", async () => {
+    await fadeOutEffect(DOM.pickTeacherPopup.popup);
+    openAddUserPopup("teacher");
   });
 }
 function renderIndividualStudentCard() {
@@ -936,16 +965,22 @@ function renderIndividualTeacherCard() {
     DOM.teacherCardContainer.appendChild(card);
   }
 }
-async function addTeacherInClass(teacherId) {
-  const isConfirm = await showConfirmationPopup(
-    "Teacher will be added will have access to the class",
-  );
-  if (!isConfirm) return;
+async function addTeacherInClass(teacherId, skipConfirm = false) {
+  if (!skipConfirm) {
+    const isConfirm = await showConfirmationPopup(
+      "Teacher will be added will have access to the class",
+    );
+    if (!isConfirm) return;
+  }
   showSectionLoader("Updating data...");
-  await fadeOutEffect(DOM.pickTeacherPopup.popup);
-  const key = `${adminAppState.activeSem.replace("semester", "")}${adminAppState.activeDiv}`;
+  if (DOM.pickTeacherPopup.popup) await fadeOutEffect(DOM.pickTeacherPopup.popup);
+  const sem = adminAppState.activeSem;
+  const div = adminAppState.activeDiv;
+  const key1 = `${sem}${div}`;
+  const key2 = `${sem.replace("semester", "")}${div}`;
   await updateData(`userData/${teacherId}/assignedClasses/`, {
-    [key]: true,
+    [key1]: true,
+    [key2]: true,
   });
   await showSectionLoader("Syncing data...");
   await syncAdminData();
@@ -973,24 +1008,74 @@ async function deleteUser(uid) {
   await deleteData(`userData/${uid}`);
 }
 
-//add student
+// add user (student or teacher)
+let currentAddUserMode = "student";
 let encryptedCode = "";
-DOM.addStudentBtn.addEventListener("click", () => {
-  const encryptedData = encryptObj({
-    division: `${adminAppState.activeDiv}`,
-    semester: `${adminAppState.activeSem}`,
-    role: "student",
-  });
-  DOM.addUserPopup.link.textContent = encryptedData;
-  encryptedCode = encryptedData;
-  DOM.addUserPopup.popupTitle.textContent = `Add Student - Div ${adminAppState.activeDiv}`;
+
+function openAddUserPopup(mode = "student") {
+  currentAddUserMode = mode;
   if (DOM.addUserPopup.form) {
     DOM.addUserPopup.form.reset();
-    if (DOM.addUserPopup.password)
-      DOM.addUserPopup.password.value = "Student@123";
     if (DOM.addUserPopup.error) hideElement(DOM.addUserPopup.error);
   }
+
+  if (mode === "teacher") {
+    DOM.addUserPopup.popupTitle.textContent = "Add Teacher";
+    if (DOM.addUserPopup.rollWrapper) {
+      DOM.addUserPopup.rollWrapper.classList.add("hidden");
+    }
+    if (DOM.addUserPopup.roll) {
+      DOM.addUserPopup.roll.required = false;
+      DOM.addUserPopup.roll.value = "";
+    }
+    if (DOM.addUserPopup.inviteCodeWrapper) {
+      DOM.addUserPopup.inviteCodeWrapper.classList.add("hidden");
+    }
+    if (DOM.addUserPopup.submitBtn) {
+      DOM.addUserPopup.submitBtn.textContent = "Create Teacher";
+    }
+    if (DOM.addUserPopup.password) {
+      DOM.addUserPopup.password.value = "Teacher@123";
+    }
+    if (DOM.addUserPopup.email) {
+      DOM.addUserPopup.email.placeholder = "teacher@example.com";
+    }
+  } else {
+    DOM.addUserPopup.popupTitle.textContent = `Add Student - Div ${adminAppState.activeDiv}`;
+    if (DOM.addUserPopup.rollWrapper) {
+      DOM.addUserPopup.rollWrapper.classList.remove("hidden");
+    }
+    if (DOM.addUserPopup.roll) {
+      DOM.addUserPopup.roll.required = true;
+    }
+    if (DOM.addUserPopup.inviteCodeWrapper) {
+      DOM.addUserPopup.inviteCodeWrapper.classList.remove("hidden");
+    }
+    if (DOM.addUserPopup.submitBtn) {
+      DOM.addUserPopup.submitBtn.textContent = "Create Student";
+    }
+    if (DOM.addUserPopup.password) {
+      DOM.addUserPopup.password.value = "Student@123";
+    }
+    if (DOM.addUserPopup.email) {
+      DOM.addUserPopup.email.placeholder = "student@example.com";
+    }
+    const encryptedData = encryptObj({
+      division: `${adminAppState.activeDiv}`,
+      semester: `${adminAppState.activeSem}`,
+      role: "student",
+    });
+    encryptedCode = encryptedData;
+    if (DOM.addUserPopup.link) {
+      DOM.addUserPopup.link.textContent = encryptedData;
+    }
+  }
+
   fadeInEffect(DOM.addUserPopup.popup);
+}
+
+DOM.addStudentBtn.addEventListener("click", () => {
+  openAddUserPopup("student");
 });
 
 if (DOM.addUserPopup.form) {
@@ -998,11 +1083,84 @@ if (DOM.addUserPopup.form) {
     e.preventDefault();
     const firstName = DOM.addUserPopup.firstName.value.trim();
     const lastName = DOM.addUserPopup.lastName.value.trim();
-    const rollNumber = DOM.addUserPopup.roll.value.trim();
     const email = DOM.addUserPopup.email.value.trim().toLowerCase();
     const password = DOM.addUserPopup.password.value.trim();
+    const rollNumber = DOM.addUserPopup.roll ? DOM.addUserPopup.roll.value.trim() : "";
 
-    if (!firstName || !lastName || !email || !password) {
+    // 1. TEACHER CREATION
+    if (currentAddUserMode === "teacher") {
+      if (!firstName || !lastName || !email || !password) {
+        DOM.addUserPopup.error.textContent = "Please fill all required fields";
+        showElement(DOM.addUserPopup.error);
+        return;
+      }
+
+      showSectionLoader("Adding teacher...");
+      if (DOM.addUserPopup.submitBtn) DOM.addUserPopup.submitBtn.disabled = true;
+
+      try {
+        const response = await fetch(`${BACKEND_URL}/create-teacher`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            firstName,
+            lastName,
+            email,
+            password,
+            semester: adminAppState.activeSem,
+            division: adminAppState.activeDiv,
+          }),
+        });
+
+        const data = await response.json();
+        if (response.ok && data.success) {
+          const teacherId = data.user.id || data.user.userId;
+          await fadeOutEffect(DOM.addUserPopup.popup);
+          await addTeacherInClass(teacherId, true);
+        } else {
+          hideSectionLoader();
+          DOM.addUserPopup.error.textContent =
+            data.error || "Failed to create teacher";
+          showElement(DOM.addUserPopup.error);
+        }
+      } catch (err) {
+        try {
+          const sem = adminAppState.activeSem;
+          const div = adminAppState.activeDiv;
+          const key1 = `${sem}${div}`;
+          const key2 = `${sem.replace("semester", "")}${div}`;
+          const tempId = "tch_" + Date.now();
+          const teacherData = {
+            id: tempId,
+            userId: tempId,
+            firstName,
+            lastName,
+            email,
+            role: "teacher",
+            assignedClasses: {
+              [key1]: true,
+              [key2]: true,
+            },
+            theme: "default",
+            pfpLink: "https://ik.imagekit.io/yn9gz2n2g/Avatars/Male/m1.png",
+          };
+          await writeData(`userData/${tempId}`, teacherData);
+          await fadeOutEffect(DOM.addUserPopup.popup);
+          await addTeacherInClass(tempId, true);
+        } catch (dbErr) {
+          hideSectionLoader();
+          DOM.addUserPopup.error.textContent = err.message;
+          showElement(DOM.addUserPopup.error);
+        }
+      } finally {
+        if (DOM.addUserPopup.submitBtn)
+          DOM.addUserPopup.submitBtn.disabled = false;
+      }
+      return;
+    }
+
+    // 2. STUDENT CREATION
+    if (!firstName || !lastName || !email || !password || !rollNumber) {
       DOM.addUserPopup.error.textContent = "Please fill all required fields";
       showElement(DOM.addUserPopup.error);
       return;
@@ -1082,14 +1240,16 @@ if (DOM.addUserPopup.closeBtn) {
 DOM.addTeacherBtn.addEventListener("click", () => {
   fadeInEffect(DOM.pickTeacherPopup.popup);
 });
-DOM.addUserPopup.link.addEventListener("click", (e) => {
-  e.preventDefault();
-  navigator.clipboard.writeText(DOM.addUserPopup.link.textContent);
-  DOM.addUserPopup.link.textContent = "Copied!";
-  setTimeout(() => {
-    DOM.addUserPopup.link.textContent = encryptedCode;
-  }, 2000);
-});
+if (DOM.addUserPopup.link) {
+  DOM.addUserPopup.link.addEventListener("click", (e) => {
+    e.preventDefault();
+    navigator.clipboard.writeText(DOM.addUserPopup.link.textContent);
+    DOM.addUserPopup.link.textContent = "Copied!";
+    setTimeout(() => {
+      DOM.addUserPopup.link.textContent = encryptedCode;
+    }, 2000);
+  });
+}
 function encryptObj(obj) {
   const str = JSON.stringify(obj);
   let encoded = btoa(str);
@@ -1110,11 +1270,19 @@ DOM.logOutBtn.addEventListener("click", async () => {
   } catch (e) {
     console.warn("unsubscribeFCM error:", e);
   }
-  // Show sidebar when logging out of admin mode
+  // Ensure all admin views and popups are hidden
   const sideBar = document.querySelector(".side-bar");
-  if (sideBar) {
-    sideBar.classList.remove("hidden");
-  }
+  if (sideBar) hideElement(sideBar);
+  const header = document.querySelector("header");
+  if (header) hideElement(header);
+  if (DOM.divisionList) hideElement(DOM.divisionList);
+  if (DOM.classRoom) hideElement(DOM.classRoom);
+  if (DOM.adminSection) hideElement(DOM.adminSection);
+  if (DOM.addUserPopup?.popup) hideElement(DOM.addUserPopup.popup);
+  if (DOM.individualUserPopup?.popup) hideElement(DOM.individualUserPopup.popup);
+  if (DOM.pickTeacherPopup?.popup) hideElement(DOM.pickTeacherPopup.popup);
+  if (DOM.addDivisionPopup?.popup) hideElement(DOM.addDivisionPopup.popup);
+  if (DOM.addSubjectPopup?.popup) hideElement(DOM.addSubjectPopup.popup);
   await signOutUser();
   await hideSectionLoader();
   await showLoginSection();
@@ -1144,11 +1312,15 @@ DOM.individualUserPopup.removeUserBtn.addEventListener("click", async () => {
   );
   if (!isConfirmed) return;
   const userId = activeUserId;
-  const key = `${adminAppState.activeSem.replace("semester", "")}${adminAppState.activeDiv}`;
+  const sem = adminAppState.activeSem;
+  const div = adminAppState.activeDiv;
+  const key1 = `${sem}${div}`;
+  const key2 = `${sem.replace("semester", "")}${div}`;
   showSectionLoader("Updating data...");
   await fadeOutEffect(DOM.individualUserPopup.popup);
   await updateData(`userData/${userId}/assignedClasses/`, {
-    [key]: null,
+    [key1]: null,
+    [key2]: null,
   });
   await showSectionLoader("Syncing data...");
   await syncAdminData();

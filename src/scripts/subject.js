@@ -1,5 +1,5 @@
 import { app, deleteData, pushData, updateData } from "./firebase.js";
-import { deleteDriveFile, uploadDriveFile, getFileTypeDetails } from "./driveApi.js";
+import { deleteDriveFile, uploadDriveFile, getFileTypeDetails, getLastUploadError } from "./driveApi.js";
 import { appState, syncDbData } from "./appstate.js";
 import {
   fadeInEffect,
@@ -529,6 +529,10 @@ DOM.noticePopup.successBtn.addEventListener("click", async () => {
     );
     if (!uploaded) {
       hideSectionLoader();
+      if (DOM.noticePopup.errors.file) {
+        DOM.noticePopup.errors.file.textContent = getLastUploadError() || "Failed to upload file";
+        showElement(DOM.noticePopup.errors.file);
+      }
       return;
     }
     attachmentURL = uploaded.webViewLink;
@@ -856,6 +860,11 @@ DOM.itemPopup.successBtn.addEventListener("click", async () => {
         console.error("Upload error:", err);
       }
       if (!uploaded) {
+        hideSectionLoader();
+        if (DOM.itemPopup.errors.file) {
+          DOM.itemPopup.errors.file.textContent = getLastUploadError() || "Failed to upload document";
+          showElement(DOM.itemPopup.errors.file);
+        }
         return;
       }
       attachmentURL = uploaded.webViewLink;

@@ -1,5 +1,5 @@
 import { app, deleteData, pushData, updateData } from "./firebase.js";
-import { deleteDriveFile, uploadDriveFile, getFileTypeDetails } from "./driveApi.js";
+import { deleteDriveFile, uploadDriveFile, getFileTypeDetails, getLastUploadError } from "./driveApi.js";
 import { appState, syncDbData } from "./appstate.js";
 import {
   fadeInEffect,
@@ -488,6 +488,11 @@ DOM.itemPopup.successBtn.addEventListener("click", async () => {
         `personalFolder/${appState.userId}/${selectedCategoryId}`,
       );
       if (!uploaded) {
+        hideSectionLoader();
+        if (DOM.itemPopup.errors?.file) {
+          DOM.itemPopup.errors.file.textContent = getLastUploadError() || "Failed to upload file";
+          showElement(DOM.itemPopup.errors.file);
+        }
         return;
       }
       attachmentURL = uploaded.webViewLink;

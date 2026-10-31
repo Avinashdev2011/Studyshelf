@@ -1359,8 +1359,15 @@ DOM.menuPopup.editPfpBtn.addEventListener("click", async () => {
 });
 DOM.menuPopup.logoutBtn.addEventListener("click", async () => {
   showSectionLoader("Logging out...", false);
+  const sideBar = document.querySelector(".side-bar");
+  if (sideBar) hideElement(sideBar);
+  const header = document.querySelector("header");
+  if (header) hideElement(header);
   if (DOM.menuPopup?.popup) {
-    fadeOutEffect(DOM.menuPopup.popup);
+    hideElement(DOM.menuPopup.popup);
+  }
+  if (DOM.accountDetailsPopup?.popup) {
+    hideElement(DOM.accountDetailsPopup.popup);
   }
   localStorage.removeItem("rememberMe");
   document.body.classList.remove("is-admin");

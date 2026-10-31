@@ -185,7 +185,7 @@ let userObj = {
     bronze: "",
   },
 };
-DOM.createAccountLink.addEventListener("click", () => {
+DOM.createAccountLink?.addEventListener("click", () => {
   fadeInEffect(DOM.classCodePopup.popup);
 });
 DOM.classCodePopup.successBtn.addEventListener("click", async () => {

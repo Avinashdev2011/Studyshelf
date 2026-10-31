@@ -142,7 +142,10 @@
     >
       <div
         class="loading-wrapper flex max-w-40 flex-col items-center gap-4"
-      ></div>
+      >
+        <div class="loader"></div>
+        <p class="loading-text text-lg font-semibold text-text-primary">Loading...</p>
+      </div>
     </div>
     <!-- section loader -->
     <div
@@ -170,10 +173,10 @@
     </div>
     <!-- navigation -->
     <nav
-      class="side-bar fixed bottom-0 left-0 z-40 mb-7 flex hidden w-full justify-center opacity-0 transition-all duration-150 lg:top-0 lg:mb-0 lg:h-full lg:w-fit"
+      class="side-bar fixed bottom-0 left-0 z-40 mb-3 flex hidden w-full justify-center opacity-0 transition-all duration-150 lg:top-0 lg:mb-0 lg:h-full lg:w-fit"
     >
       <div
-        class="side-bar-content border-nav-border bg-nav-fill lg:bg-surface-1 nav-glow transition-theme lg:border-surface-3 relative flex w-fit translate-x-0 transform items-baseline gap-7 rounded-full border-2 px-7 pt-2 pb-5 lg:h-full lg:flex-col lg:items-center lg:rounded-none lg:border-0 lg:border-r-2 lg:px-2.5 lg:py-3 lg:shadow-none"
+        class="side-bar-content border-nav-border bg-nav-fill lg:bg-surface-1 nav-glow transition-theme lg:border-surface-3 relative flex w-fit translate-x-0 transform items-baseline gap-7 rounded-full border-2 px-7 py-2.5 lg:h-full lg:flex-col lg:items-center lg:rounded-none lg:border-0 lg:border-r-2 lg:px-2.5 lg:py-3 lg:shadow-none"
       >
         <img
           src=""
@@ -315,7 +318,7 @@
       </div>
     </nav>
     <main
-      class="flex min-h-full w-full min-w-0 flex-1 flex-col gap-4 px-4 py-3 lg:mb-0 lg:ml-[4.375rem]"
+      class="flex min-h-full w-full min-w-0 flex-1 flex-col gap-4 px-4 py-3 lg:mb-0"
     >
       <!-- navbar -->
       <header class="flex hidden w-full items-center gap-2 lg:gap-3">
@@ -380,7 +383,7 @@
         <button
           class="button-hug admin-return-btn ml-2 hidden shrink-0"
         >
-          Back to Admin
+          <i class="fa-solid fa-arrow-left text-xs mr-1.5"></i> Back
         </button>
         <div class="admin-btn-wrapper ml-auto flex hidden gap-2">
           <button class="button-hug admin-logout-btn">Logout</button>
@@ -1006,36 +1009,6 @@
           class="bg-surface-2 flex w-full max-w-[22.5rem] flex-col items-center gap-4 rounded-3xl p-6 lg:max-w-[21.25rem]"
         >
           <div class="swiper-text-wrapper flex flex-col items-center gap-2">
-            <div class="swiper h-16 w-16" id="login-section-swiper">
-              <!-- Additional required wrapper -->
-              <div class="swiper-wrapper">
-                <!-- Slides -->
-                <div class="swiper-slide">
-                  <img
-                    src="https://ik.imagekit.io/yn9gz2n2g/Avatars/Male/m14.png?updatedAt=1750951353530"
-                    alt=""
-                  />
-                </div>
-                <div class="swiper-slide">
-                  <img
-                    src="https://ik.imagekit.io/yn9gz2n2g/Avatars/Female/female175.png?updatedAt=1754894768522"
-                    alt=""
-                  />
-                </div>
-                <div class="swiper-slide">
-                  <img
-                    src="https://ik.imagekit.io/yn9gz2n2g/Avatars/Male/m51.png?updatedAt=1750952706527"
-                    alt=""
-                  />
-                </div>
-                <div class="swiper-slide">
-                  <img
-                    src="https://ik.imagekit.io/yn9gz2n2g/Avatars/Female/female28.png?updatedAt=1750985915376"
-                    alt=""
-                  />
-                </div>
-              </div>
-            </div>
             <p class="text-text-primary text-2xl font-medium">Login</p>
             <p id="form-related-error" class="text-text-error text-sm"></p>
           </div>
@@ -1101,7 +1074,7 @@
               </div>
               <a
                 href=""
-                class="text-text-link text-sm"
+                class="text-text-link text-sm hidden"
                 id="forgot-password-link"
                 >Forgot password?</a
               >
@@ -1114,12 +1087,7 @@
             <span class="text transition-all duration-100">Login</span>
           </button>
         </form>
-        <div class="no-account-wrapper flex justify-center gap-1 text-sm">
-          <p class="text-text-primary">New here?</p>
-          <p class="text-text-link create-account-link cursor-pointer">
-            Create account
-          </p>
-        </div>
+
       </section>
       <!-- intro section -->
       <section
@@ -2161,6 +2129,16 @@
             </button>
           </div>
         </div>
+        <!-- back to division button -->
+        <div class="subject-top-nav-bar flex w-full items-center justify-between">
+          <button
+            class="button-hug subject-back-to-division-btn flex items-center gap-2 cursor-pointer"
+            id="subject-back-to-division-btn"
+            type="button"
+          >
+            <i class="fa-solid fa-arrow-left text-sm"></i> Back
+          </button>
+        </div>
         <!-- notice slider container -->
         <div
           class="swiper relative max-h-[30rem] w-full max-w-full shrink-0"
@@ -2689,8 +2667,8 @@
                   />
                 </div>
               </div>
-              <div class="flex gap-2">
-                <div class="flex w-24 flex-col gap-1">
+              <div class="flex gap-2" id="admin-user-roll-email-wrapper">
+                <div class="flex w-24 flex-col gap-1" id="admin-user-roll-wrapper">
                   <label for="admin-student-roll" class="text-xs text-text-secondary">Roll No</label>
                   <input
                     id="admin-student-roll"
@@ -2705,7 +2683,7 @@
                   <input
                     id="admin-student-email"
                     type="email"
-                    placeholder="student@example.com"
+                    placeholder="user@example.com"
                     class="custom-input"
                     required
                   />
@@ -2728,17 +2706,6 @@
                 </button>
               </div>
             </form>
-
-            <!-- Invite Code Option -->
-            <div class="border-t border-surface-3 pt-3 flex flex-col gap-2">
-              <p class="text-xs text-text-tertiary">Or copy class signup invite code:</p>
-              <p
-                class="bg-surface-3 text-text-link flex w-full cursor-pointer items-center justify-between rounded-xl px-4 py-2.5 text-sm"
-              >
-                <span id="add-user-link" class="block w-full truncate"></span>
-                <i class="fa-regular fa-copy ml-2 text-sm"></i>
-              </p>
-            </div>
           </div>
         </div>
         <!-- add division popup -->

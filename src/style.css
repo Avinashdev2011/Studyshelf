@@ -566,13 +566,13 @@ header {
   position: relative;
   z-index: 30;
   width: 100%;
-  min-height: 3.25rem;
+  min-height: 2.75rem;
   padding-top: 0.25rem;
-  padding-bottom: 0.5rem;
+  padding-bottom: 0;
 }
 
 main {
-  padding-top: max(1.25rem, env(safe-area-inset-top)) !important;
+  padding-top: max(0.875rem, env(safe-area-inset-top)) !important;
 }
 
 /* For admin: ALWAYS show the top bar, hide the sidebar */
@@ -608,10 +608,30 @@ body.is-admin .admin-section:not(.hidden) {
 }
 
 body.is-admin .admin-section.hidden,
-.admin-section.hidden {
+.admin-section.hidden,
+.division-list.hidden,
+.class-room.hidden,
+body.is-admin .division-list.hidden,
+body.is-admin .class-room.hidden,
+header.hidden,
+nav.hidden,
+nav.side-bar.hidden,
+.side-bar.hidden,
+section.hidden,
+.dashboard-section.hidden,
+.subject-page-section.hidden,
+.personal-folder-page-section.hidden,
+.library-section.hidden,
+.faculty-section.hidden,
+.admin-btn-wrapper.hidden,
+.admin-return-btn.hidden,
+[class*="-popup-wrapper"].hidden,
+.menu-popup-wrapper.hidden,
+.account-details-popup-wrapper.hidden {
   display: none !important;
   opacity: 0 !important;
   visibility: hidden !important;
+  pointer-events: none !important;
 }
 
 body.is-admin nav.side-bar,

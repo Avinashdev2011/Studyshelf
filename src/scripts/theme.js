@@ -1,10 +1,7 @@
 import { themeOptions } from "./theme-options.js";
-import { animationData } from "./lottieLoader.js";
 import { fadeInEffect, fadeOutEffect } from "./animation";
-import lottie from "lottie-web";
 import { updateData, writeData } from "./firebase.js";
 import { appState } from "./appstate.js";
-import { themedAnimations, getThemeAnimation } from "./themed-animations.js";
 import { trackThemeChange } from "./posthog.js";
 const DOM = {
   popup: document.querySelector(".theme-popup-wrapper"),
@@ -29,7 +26,6 @@ let activeTheme = localStorage.getItem("activeTheme") || "default";
 let activeThemeDiv = null;
 let tempSelectedTheme = "default";
 let tempSelectedThemeDiv = null;
-let isLoaderAnimation = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   setCssProperties(activeTheme);
@@ -158,33 +154,36 @@ function setCssProperties(inputTheme) {
   );
 
   // extra tweaking for special themes
-  const loader = document.querySelector(".loader");
-  if (inputTheme === "shadowNoir" && loader) {
-    loader.style.borderBottomColor = theme.textPrimary;
-  } else if (loader) {
-    loader.style.borderBottomColor = theme.primary;
-  }
+  const loaders = document.querySelectorAll(".loader");
+  loaders.forEach((loader) => {
+    if (inputTheme === "shadowNoir") {
+      loader.style.borderBottomColor = theme.textPrimary;
+    } else {
+      loader.style.borderBottomColor = theme.primary;
+    }
+  });
 }
 export function setLoaderProperties() {
-  const animationData = getThemeAnimation(activeTheme);
-  if (isLoaderAnimation) {
-    isLoaderAnimation.destroy();
-    isLoaderAnimation = null;
+  if (DOM.loaderContainer) {
+    DOM.loaderContainer.replaceChildren();
+
+    const loader = document.createElement("div");
+    loader.className = "loader";
+
+    const p = document.createElement("p");
+    p.className = "loading-text text-lg font-semibold text-text-primary";
+    p.textContent = "Loading...";
+
+    DOM.loaderContainer.appendChild(loader);
+    DOM.loaderContainer.appendChild(p);
+
+    const theme = themeOptions[activeTheme] || themeOptions.default;
+    if (activeTheme === "shadowNoir") {
+      loader.style.borderBottomColor = theme.textPrimary;
+    } else if (theme.primary) {
+      loader.style.borderBottomColor = theme.primary;
+    }
   }
-
-  DOM.loaderContainer.replaceChildren();
-
-  isLoaderAnimation = lottie.loadAnimation({
-    container: DOM.loaderContainer,
-    renderer: "svg",
-    loop: true,
-    autoplay: true,
-    animationData: animationData, // Pre-themed, zero processing!
-  });
-
-  const div = document.createElement("div");
-  div.innerHTML = `<p class="loading-text order-2 text-lg font-semibold">Loading...</p>`;
-  DOM.loaderContainer.appendChild(div);
 }
 
 // theme writer functions

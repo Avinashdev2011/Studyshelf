@@ -16,18 +16,6 @@ import {
   setPersistence,
 } from "./firebase.js";
 import { isOffline } from "./error.js";
-const swiper = new Swiper("#login-section-swiper", {
-  direction: "horizontal",
-  loop: true,
-  speed: 250,
-  effect: "fade",
-  autoplay: {
-    delay: 2000,
-  },
-  fadeEffect: {
-    crossFade: true,
-  },
-});
 // login var function and listner
 export const loginSection = document.querySelector(".login-section");
 const loginForm = document.querySelector("#login-form");
@@ -99,6 +87,9 @@ export function resetForm() {
   emailInput.value = "";
   passwordInput.value = "";
   keepLoginCheckBox.checked = false;
+  if (emailRelatedError) emailRelatedError.textContent = "";
+  if (passwordRelatedError) passwordRelatedError.textContent = "";
+  if (loginFormRelatedError) loginFormRelatedError.textContent = "";
   toggleFormState(false);
 }
 forgotPasswordLink.addEventListener("click", async (e) => {
@@ -108,26 +99,60 @@ forgotPasswordLink.addEventListener("click", async (e) => {
 export async function showLoginSection() {
   history.replaceState({}, "", "/?login=''");
   document.body.classList.remove("is-admin");
-  await hideSections(false, false, false, false);
+
+  // 1. Hide header and all its subcomponents
+  const header = document.querySelector("header");
+  if (header) hideElement(header);
+  const headerIcon = document.querySelector(".header-icon");
+  if (headerIcon) hideElement(headerIcon);
+  const headerTitle = document.querySelector(".header-title");
+  if (headerTitle) hideElement(headerTitle);
+  const adminBtnWrapper = document.querySelector(".admin-btn-wrapper");
+  if (adminBtnWrapper) hideElement(adminBtnWrapper);
+  const adminReturnBtn = document.querySelector(".admin-return-btn");
+  if (adminReturnBtn) hideElement(adminReturnBtn);
+
+  // 2. Hide navigation / sidebar and remove main margin
+  const sideBar = document.querySelector(".side-bar");
+  if (sideBar) hideElement(sideBar);
+  const main = document.querySelector("main");
+  if (main) main.classList.remove("lg:ml-[4.375rem]");
+
+  // 3. Hide all admin, division, and classroom views
   const adminSec = document.querySelector(".admin-section");
   if (adminSec) hideElement(adminSec);
   const divList = document.querySelector(".division-list");
   if (divList) hideElement(divList);
   const classRoom = document.querySelector(".class-room");
   if (classRoom) hideElement(classRoom);
-  const adminBtnWrapper = document.querySelector(".admin-btn-wrapper");
-  if (adminBtnWrapper) hideElement(adminBtnWrapper);
-  if (loginSection) {
-    loginSection.style.display = "";
-    loginSection.style.removeProperty("display");
-    await fadeInEffect(loginSection);
-  }
-  resetForm();
-  if (swiper && swiper.update) {
-    swiper.update();
-    if (swiper.autoplay && swiper.autoplay.start) {
-      swiper.autoplay.start();
+
+  // 4. Hide all sections except loginSection
+  const allSections = document.querySelectorAll("section");
+  allSections.forEach((sec) => {
+    if (sec !== loginSection) {
+      hideElement(sec);
     }
+  });
+
+  // 5. Hide ALL popup wrappers, modals, overlays across the app
+  const popups = document.querySelectorAll(
+    `[class*="-popup-wrapper"], [class*="-popup"], .menu-popup-wrapper, .account-details-popup-wrapper, .pfp-selection-popup-wrapper, .select-class-popup-wrapper, .subject-selector-popup-wrapper, .pick-teacher-popup-wrapper, .add-user-link-popup-wrapper, .individual-user-popup-wrapper, .class-code-popup-wrapper, .theme-popup-wrapper, .time-table-popup-wrapper, .select-subject-folder-wrapper, .upload-file-popup-wrapper, .add-material-popup, .confirmation-popup-wrapper, .allow-notification-popup-wrapper, .allow-notification-settings-popup-wrapper, .updates-popup-wrapper, .edit-sem-div-popup-wrapper, .edit-medal-popup-wrapper, .add-division-popup-wrapper, .add-subject-popup-wrapper, .add-ebook-popup-wrapper, .lottie-loading-screen, .success-screen`
+  );
+  popups.forEach((p) => {
+    if (p && !p.classList.contains("task-loader-wrapper")) {
+      hideElement(p);
+    }
+  });
+
+  // 6. Reset form inputs & errors
+  resetForm();
+
+  // 7. Reveal and animate login section
+  if (loginSection) {
+    loginSection.classList.remove("hidden");
+    loginSection.style.display = "flex";
+    loginSection.style.opacity = "0";
+    await fadeInEffect(loginSection);
   }
 }
 export async function showResetPasswordSection() {

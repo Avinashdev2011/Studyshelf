@@ -4,6 +4,11 @@ export const BACKEND_URL = (
   import.meta.env.VITE_DRIVE_BACKEND_URL || "http://localhost:3001"
 ).replace(/\/$/, "");
 
+export const GAS_URL = (
+  import.meta.env.VITE_GOOGLE_APPS_SCRIPT_URL ||
+  "https://script.google.com/macros/s/AKfycbx8ufRllvUk7M2X3EjAFSFPyrxeFy-gw2uhcOqIGipxI12OZulYWJpBR2qxMdwfsVTj/exec"
+).trim();
+
 function extractFileId(id) {
   if (!id || typeof id !== "string") return "";
   if (id === "custom-link") return "";
@@ -12,6 +17,21 @@ function extractFileId(id) {
     return match ? match[1] : id;
   }
   return id;
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      const base64 = typeof result === "string" && result.includes(",")
+        ? result.split(",")[1]
+        : result;
+      resolve(base64);
+    };
+    reader.onerror = (e) => reject(e);
+    reader.readAsDataURL(file);
+  });
 }
 
 export async function deleteDriveFile(attachmentId) {
@@ -26,20 +46,25 @@ export async function deleteDriveFile(attachmentId) {
     });
 
     const data = await res.json().catch(() => ({}));
-    console.log("Drive delete response:", data);
-
-    if (!res.ok || data.success === false) {
-      console.warn(
-        "Attachment deletion note from Drive backend:",
-        data?.error || "Drive file deletion notice",
-      );
+    if (res.ok && data.success !== false) {
+      return true;
     }
-
-    return true;
   } catch (err) {
-    console.warn("Error deleting attachment from Drive backend:", err);
-    return true; // Return true to allow DB item deletion to complete cleanly
+    // If backend is unreachable, try direct Apps Script delete
+    if (GAS_URL) {
+      try {
+        await fetch(GAS_URL, {
+          method: "POST",
+          body: JSON.stringify({ action: "delete", fileId }),
+          redirect: "follow",
+        });
+        return true;
+      } catch (gasErr) {
+        console.warn("GAS delete warning:", gasErr);
+      }
+    }
   }
+  return true; // Return true to allow DB item deletion to complete cleanly
 }
 
 let _lastUploadError = null;
@@ -49,6 +74,12 @@ export async function uploadDriveFile(file, path) {
   _lastUploadError = null;
   if (!file) { _lastUploadError = "No file selected"; return null; }
 
+  const origName = file?.name || "uploaded_file";
+  const extMatch = origName.includes(".")
+    ? origName.split(".").pop().toLowerCase()
+    : "";
+
+  // 1. Try local Drive backend first
   try {
     const formData = new FormData();
     formData.append("file", file);
@@ -61,38 +92,70 @@ export async function uploadDriveFile(file, path) {
       body: formData,
     });
 
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData.error || `Upload failed with status ${res.status}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && (data.success || data.webViewLink)) {
+        return {
+          webViewLink: data.webViewLink,
+          fileId: data.fileId,
+          name: origName,
+          fileName: origName,
+          fileType: extMatch,
+          mimeType: file?.type || "",
+          size: data.size || file?.size || 0,
+        };
+      }
     }
-
-    const data = await res.json();
-    if (!data.success && !data.webViewLink) {
-      throw new Error(data.error || "Upload response invalid");
-    }
-
-    const origName = file?.name || data.name || "";
-    const extMatch = origName.includes(".")
-      ? origName.split(".").pop().toLowerCase()
-      : "";
-
-    return {
-      webViewLink: data.webViewLink,
-      fileId: data.fileId,
-      name: origName,
-      fileName: origName,
-      fileType: extMatch,
-      mimeType: file?.type || "",
-      size: data.size || file?.size || 0,
-    };
-  } catch (err) {
-    const isNetwork = err instanceof TypeError && err.message.toLowerCase().includes("fetch");
-    _lastUploadError = isNetwork
-      ? "Cannot reach Drive backend (localhost:3001). Run: cd drive-backend && node server.js"
-      : err.message;
-    console.error("Error uploading file:", err);
-    return null;
+  } catch (backendErr) {
+    console.warn("Drive backend unreachable, attempting direct Google Drive upload fallback...", backendErr);
   }
+
+  // 2. Direct Fallback: Google Apps Script Web App
+  if (GAS_URL) {
+    try {
+      console.log(`[driveApi] Uploading ${origName} directly via Google Apps Script...`);
+      const base64Data = await fileToBase64(file);
+      const payload = {
+        action: "upload",
+        fileName: origName,
+        mimeType: file.type || "application/octet-stream",
+        base64: base64Data,
+        path: path || "",
+      };
+
+      const response = await fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify(payload),
+        redirect: "follow",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Google Drive returned status ${response.status}`);
+      }
+
+      const gasData = await response.json();
+      if (gasData && gasData.success && gasData.webViewLink) {
+        return {
+          webViewLink: gasData.webViewLink,
+          fileId: gasData.fileId,
+          name: gasData.name || origName,
+          fileName: origName,
+          fileType: extMatch,
+          mimeType: file.type || "",
+          size: gasData.size || file.size || 0,
+        };
+      } else {
+        throw new Error(gasData?.error || "Google Drive upload failed");
+      }
+    } catch (gasErr) {
+      console.error("[driveApi] Direct Drive upload fallback error:", gasErr);
+      _lastUploadError = gasErr.message;
+      return null;
+    }
+  }
+
+  _lastUploadError = "Cannot reach Drive backend or Google Drive storage. Please try again.";
+  return null;
 }
 
 /**

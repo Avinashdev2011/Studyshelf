@@ -523,19 +523,48 @@ editModeToggleButton.addEventListener("click", () => {
     applyEditModeUI();
   }
 });
+function handleBackToDivision() {
+  const adminReturnBtn = document.querySelector(".admin-return-btn");
+  const editModeToggleButton = document.querySelector(".edit-mode-toggle-btn");
+  if (adminReturnBtn) hideElement(adminReturnBtn);
+  if (editModeToggleButton) hideElement(editModeToggleButton);
+  localUserData.isVisitingClass = false;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const targetDiv = urlParams.get("div") || appState.activeDiv || adminAppState.activeDiv || "E";
+  const targetSem = urlParams.get("sem") || appState.activeSem || adminAppState.activeSem || "1";
+  adminAppState.activeSem = targetSem;
+  adminAppState.activeDiv = targetDiv;
+
+  history.pushState({}, "", `/?div=${encodeURIComponent(targetDiv)}&sem=${targetSem}`);
+
+  const isUserAdmin =
+    Boolean(
+      auth.currentUser &&
+      (localUserData.userData?.role === "admin" ||
+       appState.role === "admin" ||
+       adminAppState.userData?.role === "admin")
+    );
+
+  if (isUserAdmin) {
+    initAdminRouting(adminAppState.userData || localUserData.userData);
+  } else {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = "/?dashboard";
+    }
+  }
+}
+
 const adminReturnBtn = document.querySelector(".admin-return-btn");
 if (adminReturnBtn) {
-  adminReturnBtn.addEventListener("click", () => {
-    hideElement(adminReturnBtn);
-    hideElement(editModeToggleButton);
-    localUserData.isVisitingClass = false;
-    const targetDiv = appState.activeDiv || adminAppState.activeDiv || "E";
-    const targetSem = appState.activeSem || adminAppState.activeSem || "1";
-    adminAppState.activeSem = targetSem;
-    adminAppState.activeDiv = targetDiv;
-    history.pushState({}, "", `/?div=${encodeURIComponent(targetDiv)}&sem=${targetSem}`);
-    initAdminRouting(adminAppState.userData || localUserData.userData);
-  });
+  adminReturnBtn.addEventListener("click", handleBackToDivision);
+}
+
+const subjectBackBtn = document.querySelector("#subject-back-to-division-btn");
+if (subjectBackBtn) {
+  subjectBackBtn.addEventListener("click", handleBackToDivision);
 }
 export async function applyEditModeUI() {
   const editorTool = document.querySelectorAll(".editor-tool");
