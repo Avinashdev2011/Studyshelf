@@ -13,24 +13,6 @@ import { isSubscribe } from "./login.js";
 import { trackAllowNotification } from "./posthog.js";
 import { BACKEND_URL } from "./driveApi.js";
 const DOM = {
-  allowNotification: {
-    popup: document.querySelector(".allow-notification-popup-wrapper"),
-    successBtn: document.querySelector(
-      ".allow-notification-popup-wrapper .success-btn",
-    ),
-    closeBtn: document.querySelector(
-      ".allow-notification-popup-wrapper .close-popup-btn",
-    ),
-  },
-  allowInSettings: {
-    popup: document.querySelector(".allow-notification-settings-popup-wrapper"),
-    successBtn: document.querySelector(
-      ".allow-notification-settings-popup-wrapper .success-btn",
-    ),
-    closeBtn: document.querySelector(
-      ".allow-notification-settings-popup-wrapper .close-popup-btn",
-    ),
-  },
   updates: {
     popup: document.querySelector(".updates-popup-wrapper"),
     successBtn: document.querySelector(".updates-popup-wrapper .success-btn"),
@@ -43,41 +25,19 @@ const DOM = {
 let token;
 let subscribedTopics = [];
 export async function requestNotificationPermission() {
+  if (typeof Notification === "undefined") return;
   if (Notification.permission === "granted") {
-    token = await getToken(messaging, {
-      vapidKey:
-        "BP2FM9upp84r_zB6MSRn4OWOgiUt5qUzjEP0z863cBbQF7O7OypOL3Cc-rwcb6QVpqbpSC5L67tfoUn3jg7jlyQ",
-    });
-    subscribe();
-  } else {
-    fadeInEffect(DOM.allowNotification.popup);
-  }
-}
-DOM.allowNotification.successBtn.addEventListener("click", async () => {
-  await Notification.requestPermission().then(async (permission) => {
-    if (permission === "granted") {
-      fadeOutEffect(DOM.allowNotification.popup);
+    try {
       token = await getToken(messaging, {
         vapidKey:
           "BP2FM9upp84r_zB6MSRn4OWOgiUt5qUzjEP0z863cBbQF7O7OypOL3Cc-rwcb6QVpqbpSC5L67tfoUn3jg7jlyQ",
       });
-      trackAllowNotification("User allowed notifications");
-      isSubscribe.subscribe = true;
-
-      subscribe(token);
-      return;
+      subscribe();
+    } catch (err) {
+      console.warn("Error getting notification token:", err);
     }
-  });
-  if (Notification.permission === "denied") {
-    fadeInEffect(DOM.allowInSettings.popup);
   }
-});
-DOM.allowNotification.closeBtn.addEventListener("click", () => {
-  fadeOutEffect(DOM.allowNotification.popup);
-});
-DOM.allowInSettings.closeBtn.addEventListener("click", () => {
-  fadeOutEffect(DOM.allowInSettings.popup);
-});
+}
 export function setOnMessageListener() {
   onMessage(messaging, (payload) => {
     if (Notification.permission === "granted") {

@@ -56,7 +56,7 @@ export function getUserData(userId) {
       }
     })
     .catch((error) => {
-      showErrorSection("Error fetching user data:", error);
+      console.error("Error fetching user data:", error);
       return null;
     });
 }

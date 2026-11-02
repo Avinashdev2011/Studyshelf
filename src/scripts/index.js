@@ -91,9 +91,10 @@ const selectClassCardContainer =
   selectClassPopup.querySelector(".card-container");
 export async function showSelectClassPopup(user) {
   selectClassCardContainer.innerHTML = "";
-  const classList = user.assignedClasses;
-  if (Object.keys(classList).length === 1) {
-    const [sem, div] = Object.keys(classList)[0].split("");
+  const classList = user.assignedClasses || {};
+  const classKeys = Object.keys(classList);
+  if (classKeys.length === 1) {
+    const [sem, div] = classKeys[0].split("");
     localUserData.userData = user;
     localUserData.userData.class = `${sem}${div}`;
     hideSectionLoader();
@@ -193,9 +194,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         if (userCredential) {
           const user = await getUserData(userCredential.uid);
+          if (!user) {
+            console.warn("User profile not found in database for UID:", userCredential.uid);
+            await signOutUser();
+            await hideSectionLoader();
+            await showLoginSection();
+            return;
+          }
           initTheme(user.theme);
           trackLoginUser(userCredential.uid, user.email);
-          sentaryInit(user.email, `${user.firstName} ${user.lastName}`);
+          sentaryInit(user.email, `${user.firstName || ""} ${user.lastName || ""}`);
           if (user.role === "teacher") {
             showSelectClassPopup(user);
             return;
@@ -265,7 +273,8 @@ export async function initClass() {
     } else {
       document.body.classList.add("is-admin");
     }
-    const [Semester, Division] = localUserData.userData.class.split("");
+    const classStr = localUserData.userData?.class || "1A";
+    const [Semester, Division] = classStr.split("");
     await initAppState(localUserData.userData, Semester, Division);
     await fadeInEffect(lottieLoadingScreen);
     if (
