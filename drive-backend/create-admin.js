@@ -16,7 +16,7 @@ const app = initializeApp({
 const auth = getAuth(app);
 const db = getDatabase(app);
 
-const ADMIN_EMAIL = "admin@studyshelf.com";
+const ADMIN_EMAIL = "studyshelfofficial26@gmail.com";
 const ADMIN_PASSWORD = "Admin@StudyShelf2026!";
 
 async function main() {

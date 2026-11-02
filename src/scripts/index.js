@@ -571,10 +571,6 @@ if (adminReturnBtn) {
   adminReturnBtn.addEventListener("click", handleBackToDivision);
 }
 
-const subjectBackBtn = document.querySelector("#subject-back-to-division-btn");
-if (subjectBackBtn) {
-  subjectBackBtn.addEventListener("click", handleBackToDivision);
-}
 export async function applyEditModeUI() {
   const editorTool = document.querySelectorAll(".editor-tool");
   const editorOnlyContent = document.querySelectorAll(".editor-only-content");
